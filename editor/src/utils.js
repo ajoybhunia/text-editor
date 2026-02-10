@@ -1,0 +1,27 @@
+export const KEYS = {
+  UP: "UP",
+  DOWN: "DOWN",
+  LEFT: "LEFT",
+  RIGHT: "RIGHT",
+  ESC: 0x1b,
+  BACKSPACE: 0x7f,
+  CR: 0x0d,
+  NEW_LINE: 0x0a,
+  h: 0x68,
+  l: 0x6c,
+  j: 0x6a,
+  k: 0x6b,
+  i: 0x69,
+  ":": 0x3a,
+  "[": 0x5b,
+  A: 0x41,
+  B: 0x42,
+  C: 0x43,
+  D: 0x44,
+};
+
+export const MODES = {
+  MODE_NORMAL: "-- NORMAL --",
+  MODE_INSERT: "-- INSERT --",
+  MODE_CLI: "-- COMMAND LINE --",
+};

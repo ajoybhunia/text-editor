@@ -1,0 +1,23 @@
+import { Editor } from "./src/editor.js";
+import { Terminal } from "./src/terminal.js";
+
+const main = async (filePath) => {
+  const file = await Deno.open(filePath, {
+    read: true,
+    write: true,
+    create: true,
+  });
+
+  let buffer = new Uint8Array(1024);
+  const n = await file.read(buffer);
+  buffer = buffer.slice(0, n);
+  file.close();
+
+  const editor = new Editor(buffer);
+  const info = await editor.run();
+
+  if (info.shouldWrite) await Deno.writeFile(filePath, info.data);
+  await Terminal.clear();
+};
+
+await main(Deno.args[0]);
