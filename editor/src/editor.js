@@ -43,6 +43,8 @@ export class Editor {
       [KEYS.l]: () => this.#cursor.moveRight(this.#buffer.bytes),
       [KEYS.j]: () => this.#cursor.moveDown(this.#buffer.bytes),
       [KEYS.k]: () => this.#cursor.moveUp(this.#buffer.bytes),
+      [KEYS[0]]: () => this.#cursor.moveToFirst(this.#buffer.bytes),
+      [KEYS.$]: () => this.#cursor.moveToLast(this.#buffer.bytes),
     };
   }
 

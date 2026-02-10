@@ -18,6 +18,8 @@ export const KEYS = {
   B: 0x42,
   C: 0x43,
   D: 0x44,
+  0: 0x30,
+  $: 0x24,
 };
 
 export const MODES = {

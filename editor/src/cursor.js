@@ -21,6 +21,14 @@ export class Cursor {
     return this.pos - this.#lineStart(buffer);
   }
 
+  moveToFirst(buffer) {
+    this.pos = this.#lineStart(buffer);
+  }
+
+  moveToLast(buffer) {
+    this.pos = this.#lineEnd(buffer);
+  }
+
   moveLeft(buffer) {
     if (this.pos > 0 && buffer[this.pos - 1] !== KEYS.NEW_LINE) this.pos--;
   }
