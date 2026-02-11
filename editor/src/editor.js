@@ -14,7 +14,7 @@ export class Editor {
   constructor(bytes) {
     this.#buffer = new TextBuffer(bytes);
     this.#cursor = new Cursor();
-    this.#cursor.pos = this.#buffer.length;
+    // this.#cursor.pos = this.#buffer.length;
     this.#mode = MODES.MODE_NORMAL;
   }
 
@@ -33,12 +33,17 @@ export class Editor {
     }
   }
 
-  #normalModeCursorCallback() {
+  #arrowKeyCursorMovement() {
     return {
       [KEYS.LEFT]: () => this.#cursor.moveLeft(this.#buffer.bytes),
       [KEYS.RIGHT]: () => this.#cursor.moveRight(this.#buffer.bytes),
       [KEYS.UP]: () => this.#cursor.moveUp(this.#buffer.bytes),
       [KEYS.DOWN]: () => this.#cursor.moveDown(this.#buffer.bytes),
+    };
+  }
+
+  #normalModeCursorMovement() {
+    return {
       [KEYS.h]: () => this.#cursor.moveLeft(this.#buffer.bytes),
       [KEYS.l]: () => this.#cursor.moveRight(this.#buffer.bytes),
       [KEYS.j]: () => this.#cursor.moveDown(this.#buffer.bytes),
@@ -59,17 +64,11 @@ export class Editor {
       return await this.#handleCLI();
     }
 
-    const mapperFns = this.#normalModeCursorCallback();
-    if (mapperFns[key]) return mapperFns[key]();
-  }
+    const normalKeyFns = this.#normalModeCursorMovement();
+    const arrowKeyFns = this.#arrowKeyCursorMovement();
+    const callback = normalKeyFns[key] || arrowKeyFns[key];
 
-  #insertModeCursorCallback() {
-    return {
-      [KEYS.LEFT]: () => this.#cursor.moveLeft(this.#buffer.bytes),
-      [KEYS.RIGHT]: () => this.#cursor.moveRight(this.#buffer.bytes),
-      [KEYS.UP]: () => this.#cursor.moveUp(this.#buffer.bytes),
-      [KEYS.DOWN]: () => this.#cursor.moveDown(this.#buffer.bytes),
-    };
+    if (callback) return callback();
   }
 
   #insertByteCallback() {
@@ -84,7 +83,7 @@ export class Editor {
       await this.#render(this.#buffer.bytes, this.#cursor.pos);
       const key = await Terminal.readKey();
 
-      const cursorFns = this.#insertModeCursorCallback();
+      const cursorFns = this.#arrowKeyCursorMovement();
       const byteFns = this.#insertByteCallback();
 
       if (key === KEYS.ESC) {

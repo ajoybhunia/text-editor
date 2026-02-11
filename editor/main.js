@@ -8,7 +8,7 @@ const main = async (filePath) => {
     create: true,
   });
 
-  let buffer = new Uint8Array(1024);
+  let buffer = new Uint8Array(204800);
   const n = await file.read(buffer);
   buffer = buffer.slice(0, n);
   file.close();
