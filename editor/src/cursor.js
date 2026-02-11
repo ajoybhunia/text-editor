@@ -3,6 +3,7 @@ import { KEYS } from "./utils.js";
 export class Cursor {
   constructor() {
     this.pos = 0;
+    this.prevCol = this.pos;
   }
 
   #lineStart(buffer) {
@@ -23,20 +24,26 @@ export class Cursor {
 
   moveToFirst(buffer) {
     this.pos = this.#lineStart(buffer);
+    this.prevCol = this.#column(buffer);
   }
 
   moveToLast(buffer) {
     this.pos = this.#lineEnd(buffer);
+    this.prevCol = this.#column(buffer);
   }
 
   moveLeft(buffer) {
-    if (this.pos > 0 && buffer[this.pos - 1] !== KEYS.NEW_LINE) this.pos--;
+    if (this.pos > 0 && buffer[this.pos - 1] !== KEYS.NEW_LINE) {
+      this.pos--;
+    }
+    this.prevCol = this.#column(buffer);
   }
 
   moveRight(buffer) {
     if (this.pos < buffer.length && buffer[this.pos] !== KEYS.NEW_LINE) {
       this.pos++;
     }
+    this.prevCol = this.#column(buffer);
   }
 
   moveDown(buffer) {
@@ -53,6 +60,10 @@ export class Cursor {
     }
 
     this.pos = Math.min(nextStart + col, nextEnd);
+
+    if (nextEnd > this.pos) {
+      this.pos = Math.min(nextStart + this.prevCol, nextEnd);
+    }
   }
 
   moveUp(buffer) {
@@ -69,5 +80,9 @@ export class Cursor {
     }
 
     this.pos = prevStart + Math.min(col, prevEnd - prevStart);
+
+    if (prevEnd > this.pos) {
+      this.pos = prevStart + Math.min(this.prevCol, prevEnd - prevStart);
+    }
   }
 }
