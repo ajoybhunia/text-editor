@@ -18,10 +18,10 @@ export class Terminal {
 
   #mapKeys() {
     return {
-      [KEYS.A]: () => KEYS.UP,
-      [KEYS.B]: () => KEYS.DOWN,
-      [KEYS.C]: () => KEYS.RIGHT,
-      [KEYS.D]: () => KEYS.LEFT,
+      [KEYS.A]: KEYS.UP,
+      [KEYS.B]: KEYS.DOWN,
+      [KEYS.C]: KEYS.RIGHT,
+      [KEYS.D]: KEYS.LEFT,
     };
   }
 
@@ -33,7 +33,7 @@ export class Terminal {
 
     if (buf[0] === KEYS.ESC && buf[1] === KEYS["["]) {
       const terminal = new Terminal();
-      return terminal.#mapKeys()[buf[2]]();
+      return terminal.#mapKeys()[buf[2]];
     }
 
     return buf[0];

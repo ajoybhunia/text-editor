@@ -8,7 +8,9 @@ const main = async (filePath) => {
     create: true,
   });
 
-  let buffer = new Uint8Array(204800);
+  const { size } = await Deno.stat(filePath);
+
+  let buffer = new Uint8Array(size);
   const n = await file.read(buffer);
   buffer = buffer.slice(0, n);
   file.close();

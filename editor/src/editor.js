@@ -14,7 +14,6 @@ export class Editor {
   constructor(bytes) {
     this.#buffer = new TextBuffer(bytes);
     this.#cursor = new Cursor();
-    // this.#cursor.pos = this.#buffer.length;
     this.#mode = MODES.MODE_NORMAL;
   }
 
@@ -54,7 +53,7 @@ export class Editor {
   }
 
   async #handleNormal(key) {
-    if (key === KEYS.i) {
+    if (key === KEYS.i) { // i -> insert
       this.#mode = MODES.MODE_INSERT;
       return await this.#handleInsert();
     }
@@ -89,14 +88,12 @@ export class Editor {
       if (key === KEYS.ESC) {
         this.#mode = MODES.MODE_NORMAL;
         return { shouldReturn: false };
-      } else if (cursorFns[key]) {
+      } else if (cursorFns[key] !== undefined) {
         cursorFns[key]();
-      } else if (byteFns[key]) {
+      } else if (byteFns[key] !== undefined) {
         this.#cursor.pos = byteFns[key]();
-      } else {
-        if (typeof key === "number") {
-          this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
-        }
+      } else if (typeof key === "number") {
+        this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
       }
     }
   }
@@ -113,7 +110,7 @@ export class Editor {
   }
 
   async #handleCLI() {
-    const cmdBuff = new TextBuffer(new Uint8Array([58]));
+    const cmdBuff = new TextBuffer(new Uint8Array([58])); // 58 -> ':'
     let pos = cmdBuff.length;
 
     await this.#render(cmdBuff.bytes, pos);
