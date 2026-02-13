@@ -15,5 +15,46 @@ export class PieceTable {
   }
 
   insert(position, text) {
+    const newPieceStart = this.add.length;
+    this.add += text;
+
+    let currentPos = 0;
+
+    for (let i = 0; i < this.pieces.length; i++) {
+      const piece = this.pieces[i];
+      const nextPos = currentPos + piece.length;
+
+      if (position <= nextPos) {
+        const offset = position - currentPos;
+        const newPieces = [];
+
+        if (offset > 0) {
+          newPieces.push({
+            source: piece.source,
+            start: piece.start,
+            length: offset,
+          });
+        }
+
+        newPieces.push({
+          source: this.add,
+          start: newPieceStart,
+          length: text.length,
+        });
+
+        if (offset < piece.length) {
+          newPieces.push({
+            source: piece.source,
+            start: piece.start + offset,
+            length: piece.length - offset,
+          });
+        }
+
+        this.pieces.splice(i, 1, ...newPieces);
+        return;
+      }
+
+      currentPos = nextPos;
+    }
   }
 }
