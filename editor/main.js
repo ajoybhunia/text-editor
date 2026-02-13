@@ -10,12 +10,11 @@ const main = async (filePath) => {
 
   const { size } = await Deno.stat(filePath);
 
-  let buffer = new Uint8Array(size);
+  const buffer = new Uint8Array(size);
   const n = await file.read(buffer);
-  buffer = buffer.slice(0, n);
   file.close();
 
-  const editor = new Editor(buffer);
+  const editor = new Editor(buffer.subarray(0, n));
   const info = await editor.run();
 
   if (info.shouldWrite) await Deno.writeFile(filePath, info.data);
