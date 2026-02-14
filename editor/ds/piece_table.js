@@ -1,5 +1,3 @@
-import { start } from "node:repl";
-
 export class PieceTable {
   constructor(text) {
     this.original = text;
@@ -73,18 +71,22 @@ export class PieceTable {
 
       if (pieceEnd <= deleteStart || pieceStart >= deleteEnd) {
         newPieces.push(piece);
-      } else if (deleteStart > pieceStart) {
-        newPieces.push({
-          source: piece.source,
-          start: piece.start,
-          length: deleteStart - pieceStart,
-        });
-      } else if (pieceEnd > deleteEnd) {
-        newPieces.push({
-          source: piece.source,
-          start: piece.start + (deleteEnd - pieceStart),
-          length: pieceEnd - deleteEnd,
-        });
+      } else {
+        if (deleteStart > pieceStart) {
+          newPieces.push({
+            source: piece.source,
+            start: piece.start,
+            length: deleteStart - pieceStart,
+          });
+        }
+
+        if (pieceEnd > deleteEnd) {
+          newPieces.push({
+            source: piece.source,
+            start: piece.start + (deleteEnd - pieceStart),
+            length: pieceEnd - deleteEnd,
+          });
+        }
       }
 
       currentPos = pieceEnd;
