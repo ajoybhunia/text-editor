@@ -1,3 +1,5 @@
+import { start } from "node:repl";
+
 export class PieceTable {
   constructor(text) {
     this.original = text;
@@ -56,5 +58,38 @@ export class PieceTable {
 
       currentPos = nextPos;
     }
+  }
+
+  delete(position, length) {
+    let currentPos = 0;
+    const newPieces = [];
+
+    for (const piece of this.pieces) {
+      const pieceStart = currentPos;
+      const pieceEnd = currentPos + piece.length;
+
+      const deleteStart = position;
+      const deleteEnd = position + length;
+
+      if (pieceEnd <= deleteStart || pieceStart >= deleteEnd) {
+        newPieces.push(piece);
+      } else if (deleteStart > pieceStart) {
+        newPieces.push({
+          source: piece.source,
+          start: piece.start,
+          length: deleteStart - pieceStart,
+        });
+      } else if (pieceEnd > deleteEnd) {
+        newPieces.push({
+          source: piece.source,
+          start: piece.start + (deleteEnd - pieceStart),
+          length: pieceEnd - deleteEnd,
+        });
+      }
+
+      currentPos = pieceEnd;
+    }
+
+    this.pieces = newPieces;
   }
 }
