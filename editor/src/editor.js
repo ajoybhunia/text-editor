@@ -58,7 +58,7 @@ export class Editor {
       return await this.#handleInsert();
     }
 
-    if (key === KEYS[":"]) {
+    if (key === KEYS[":"]) { // : => CLI
       this.#mode = MODES.MODE_CLI;
       return await this.#handleCLI();
     }
@@ -67,7 +67,7 @@ export class Editor {
     const arrowKeyFns = this.#arrowKeyCursorMovement();
     const callback = normalKeyFns[key] || arrowKeyFns[key];
 
-    if (callback) return callback();
+    if (callback !== undefined) return callback();
   }
 
   #insertByteCallback() {
@@ -131,7 +131,7 @@ export class Editor {
         const quitOptions = this.#quitOptions();
         const callback = quitOptions[decoder.decode(cmdBuff.bytes)];
 
-        if (callback) return callback();
+        if (callback !== undefined) return callback();
 
         this.#mode = MODES.MODE_NORMAL;
         return;

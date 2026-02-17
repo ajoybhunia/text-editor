@@ -8,57 +8,80 @@ export class PieceTable {
   }
 
   getText() {
-    return this.pieces.map((each) => {
-      const buffer = each.source;
-      return buffer.slice(each.start, each.start + each.length);
+    return this.pieces.map((piece) => {
+      const buffer = piece.source;
+      return buffer.slice(piece.start, piece.start + piece.length);
     }).join("");
   }
 
-  insert(position, text) {
-    const newPieceStart = this.add.length;
-    this.add += text;
+  validatePos(position) {
+    const totalLength = this.getText().length;
 
-    let currentPos = 0;
-
-    for (let i = 0; i < this.pieces.length; i++) {
-      const piece = this.pieces[i];
-      const nextPos = currentPos + piece.length;
-
-      if (position <= nextPos) {
-        const offset = position - currentPos;
-        const newPieces = [];
-
-        if (offset > 0) {
-          newPieces.push({
-            source: piece.source,
-            start: piece.start,
-            length: offset,
-          });
-        }
-
-        newPieces.push({
-          source: this.add,
-          start: newPieceStart,
-          length: text.length,
-        });
-
-        if (offset < piece.length) {
-          newPieces.push({
-            source: piece.source,
-            start: piece.start + offset,
-            length: piece.length - offset,
-          });
-        }
-
-        this.pieces.splice(i, 1, ...newPieces);
-        return;
-      }
-
-      currentPos = nextPos;
+    if (position < 0 || position > totalLength) {
+      throw new Error("Position out of bounds");
     }
   }
 
+  findPiece(position) {
+    let currentPos = 0;
+    let i = 0;
+
+    do {
+      const piece = this.pieces[i];
+      const nextPos = currentPos + piece.length;
+
+      if (nextPos >= position) {
+        return { index: i, offset: position - currentPos };
+      }
+
+      currentPos = nextPos;
+      i++;
+    } while (i < this.pieces.length);
+  }
+
+  insert(position, text) {
+    this.validatePos(position);
+
+    const newPieceStart = this.add.length;
+    this.add += text;
+
+    const { index, offset } = this.findPiece(position);
+    const piece = this.pieces[index];
+
+    const newPiece = {
+      source: this.add,
+      start: newPieceStart,
+      length: text.length,
+    };
+
+    if (offset === 0) {
+      this.pieces.splice(index, 0, newPiece);
+      return;
+    }
+
+    if (offset === piece.length) {
+      this.pieces.splice(index + 1, 0, newPiece);
+      return;
+    }
+
+    const before = {
+      source: piece.source,
+      start: piece.start,
+      length: offset,
+    };
+
+    const after = {
+      source: piece.source,
+      start: piece.start + offset,
+      length: piece.length - offset,
+    };
+
+    this.pieces.splice(index, 1, before, newPiece, after);
+  }
+
   delete(position, length) {
+    this.validatePos(position);
+
     let currentPos = 0;
     const newPieces = [];
 
@@ -69,24 +92,23 @@ export class PieceTable {
       const deleteStart = position;
       const deleteEnd = position + length;
 
+      const before = {
+        source: piece.source,
+        start: piece.start,
+        length: deleteStart - pieceStart,
+      };
+
+      const after = {
+        source: piece.source,
+        start: piece.start + (deleteEnd - pieceStart),
+        length: pieceEnd - deleteEnd,
+      };
+
       if (pieceEnd <= deleteStart || pieceStart >= deleteEnd) {
         newPieces.push(piece);
       } else {
-        if (deleteStart > pieceStart) {
-          newPieces.push({
-            source: piece.source,
-            start: piece.start,
-            length: deleteStart - pieceStart,
-          });
-        }
-
-        if (pieceEnd > deleteEnd) {
-          newPieces.push({
-            source: piece.source,
-            start: piece.start + (deleteEnd - pieceStart),
-            length: pieceEnd - deleteEnd,
-          });
-        }
+        if (deleteStart > pieceStart) newPieces.push(before);
+        if (pieceEnd > deleteEnd) newPieces.push(after);
       }
 
       currentPos = pieceEnd;
