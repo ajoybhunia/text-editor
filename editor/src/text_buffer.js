@@ -164,7 +164,9 @@ export class TextBuffer {
       currentPos = pieceEnd;
     }
 
-    this.pieces = newPieces;
+    this.pieces = newPieces.length === 0
+      ? [{ source: this.original, start: 0, length: 0 }]
+      : newPieces;
     this.bytes = encoder.encode(this.getText());
 
     return position - 1;
