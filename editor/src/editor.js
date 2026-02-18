@@ -71,8 +71,15 @@ export class Editor {
   }
 
   #prevLineFeed() {
+    const { row, col } = this.#computeCursor(
+      this.#buffer.bytes,
+      this.#cursor.pos,
+    );
+
+    if (col === 1 && row !== 1) return this.#cursor.pos - 1;
+
     for (let i = this.#cursor.pos; i >= 0; i--) {
-      if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
+      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
     }
 
     return 0;
