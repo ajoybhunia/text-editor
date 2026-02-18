@@ -12,7 +12,7 @@ export class Editor {
   #mode;
 
   constructor(bytes) {
-    this.#buffer = new TextBuffer(bytes);
+    this.#buffer = new TextBuffer(decoder.decode(bytes));
     this.#cursor = new Cursor();
     this.#mode = MODES.MODE_NORMAL;
   }
@@ -110,7 +110,7 @@ export class Editor {
   }
 
   async #handleCLI() {
-    const cmdBuff = new TextBuffer(new Uint8Array([58])); // 58 -> ':'
+    const cmdBuff = new TextBuffer(":");
     let pos = cmdBuff.length;
 
     await this.#render(cmdBuff.bytes, pos);
