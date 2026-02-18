@@ -76,3 +76,32 @@
 | Show Cursor             | `\x1b[?25h`         | Terminal shows cursor |
 | Save Cursor Position    | `\x1b[s`            | ESC + s               |
 | Restore Cursor Position | `\x1b[u`            | ESC + u               |
+
+| Ctrl     | Escape | ASCII | Name                            | Description                                                                |
+| -------- | ------ | ----- | ------------------------------- | -------------------------------------------------------------------------- |
+| Ctrl + A | \x01   | 1     | SOH (Start of Heading)          | Marks the beginning of a message header in old communication protocols.    |
+| Ctrl + B | \x02   | 2     | STX (Start of Text)             | Indicates the start of the main message text.                              |
+| Ctrl + C | \x03   | 3     | ETX (End of Text)               | Marks end of text. In terminals, interrupts (stops) a running program.     |
+| Ctrl + D | \x04   | 4     | EOT (End of Transmission)       | Signals end of transmission. In Unix, sends EOF.                           |
+| Ctrl + E | \x05   | 5     | ENQ (Enquiry)                   | Requests a response from the receiving device.                             |
+| Ctrl + F | \x06   | 6     | ACK (Acknowledge)               | Confirms successful receipt of data.                                       |
+| Ctrl + G | \x07   | 7     | BEL (Bell)                      | Triggers a beep or alert sound in terminals.                               |
+| Ctrl + H | \x08   | 8     | BS (Backspace)                  | Moves cursor one position backward.                                        |
+| Ctrl + I | \x09   | 9     | HT (Horizontal Tab)             | Moves cursor to the next tab stop (Tab character).                         |
+| Ctrl + J | \x0A   | 10    | LF (Line Feed)                  | Moves cursor to next line (Unix newline).                                  |
+| Ctrl + K | \x0B   | 11    | VT (Vertical Tab)               | Moves cursor to next vertical tab stop (rarely used).                      |
+| Ctrl + L | \x0C   | 12    | FF (Form Feed)                  | Advances to next page; often clears terminal screen.                       |
+| Ctrl + M | \x0D   | 13    | CR (Carriage Return)            | Moves cursor to beginning of line (used in Windows line endings).          |
+| Ctrl + N | \x0E   | 14    | SO (Shift Out)                  | Switches to alternate character set (old terminals).                       |
+| Ctrl + O | \x0F   | 15    | SI (Shift In)                   | Returns to standard character set.                                         |
+| Ctrl + P | \x10   | 16    | DLE (Data Link Escape)          | Indicates next character has special meaning in data streams.              |
+| Ctrl + Q | \x11   | 17    | DC1 (Device Control 1)          | Device control; resumes terminal output (XON).                             |
+| Ctrl + R | \x12   | 18    | DC2 (Device Control 2)          | Device control character (rarely used today).                              |
+| Ctrl + S | \x13   | 19    | DC3 (Device Control 3)          | Pauses terminal output (XOFF).                                             |
+| Ctrl + T | \x14   | 20    | DC4 (Device Control 4)          | Device control character (rarely used today).                              |
+| Ctrl + U | \x15   | 21    | NAK (Negative Acknowledge)      | Indicates data was received with errors.                                   |
+| Ctrl + V | \x16   | 22    | SYN (Synchronous Idle)          | Used for synchronization in data transmission.                             |
+| Ctrl + W | \x17   | 23    | ETB (End of Transmission Block) | Marks end of a block of transmitted data.                                  |
+| Ctrl + X | \x18   | 24    | CAN (Cancel)                    | Cancels previously transmitted data.                                       |
+| Ctrl + Y | \x19   | 25    | EM (End of Medium)              | Indicates physical end of storage medium (like tape).                      |
+| Ctrl + Z | \x1A   | 26    | SUB (Substitute)                | Replaces invalid characters; Windows EOF; suspends process in Unix shells. |

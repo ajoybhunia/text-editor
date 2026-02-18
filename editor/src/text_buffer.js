@@ -44,6 +44,7 @@ export class TextBuffer {
       { source: this.#original, start: 0, length: this.#original.length },
     ];
     this.bytes = encoder.encode(this.#getText());
+    this.records = [this.#pieces];
   }
 
   get length() {
@@ -131,7 +132,7 @@ export class TextBuffer {
   delete(position, length = 1) {
     this.#validatePos(position);
 
-    if (position === 0) return position;
+    // if (position === 0) return position;
 
     let currentPos = 0;
     const newPieces = [];
@@ -140,8 +141,8 @@ export class TextBuffer {
       const pieceStart = currentPos;
       const pieceEnd = currentPos + piece.length;
 
-      const deleteStart = position - 1;
-      const deleteEnd = position - 1 + length;
+      const deleteStart = position - length;
+      const deleteEnd = position /* - length + length */;
 
       const before = {
         source: piece.source,
@@ -170,6 +171,6 @@ export class TextBuffer {
       : newPieces;
     this.bytes = encoder.encode(this.#getText());
 
-    return position - 1;
+    return position - length;
   }
 }

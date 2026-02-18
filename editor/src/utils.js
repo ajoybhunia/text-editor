@@ -7,6 +7,7 @@ export const KEYS = {
   BACKSPACE: 0x7f,
   CR: 0x0d,
   NEW_LINE: 0x0a,
+  NAK: 0x15,
   h: 0x68,
   l: 0x6c,
   j: 0x6a,

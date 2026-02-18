@@ -70,10 +70,23 @@ export class Editor {
     if (callback !== undefined) return callback();
   }
 
+  #prevLineFeed() {
+    for (let i = this.#cursor.pos; i >= 0; i--) {
+      if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
+    }
+
+    return 0;
+  }
+
   #insertByteCallback() {
     return {
-      [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos),
+      [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos, 1),
       [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.NEW_LINE),
+      [KEYS.NAK]: () =>
+        this.#buffer.delete(
+          this.#cursor.pos,
+          this.#cursor.pos - this.#prevLineFeed(),
+        ),
     };
   }
 
