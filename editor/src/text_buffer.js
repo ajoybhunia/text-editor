@@ -33,78 +33,79 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 export class TextBuffer {
+  #original;
+  #add;
+  #pieces;
+
   constructor(buffer) {
-    this.original = buffer;
-    this.add = "";
-    this.pieces = [
-      { source: this.original, start: 0, length: this.original.length },
+    this.#original = buffer;
+    this.#add = "";
+    this.#pieces = [
+      { source: this.#original, start: 0, length: this.#original.length },
     ];
-    this.bytes = encoder.encode(this.getText());
+    this.bytes = encoder.encode(this.#getText());
   }
 
   get length() {
     return this.bytes.length;
   }
 
-  getText() {
-    return this.pieces.map((piece) => {
+  #getText() {
+    return this.#pieces.map((piece) => {
       const buffer = piece.source;
       return buffer.slice(piece.start, piece.start + piece.length);
     }).join("");
   }
 
-  validatePos(position) {
-    const totalLength = this.getText().length;
+  #validatePos(position) {
+    const totalLength = this.#getText().length;
 
     if (position < 0 || position > totalLength) {
       throw new Error("Position out of bounds");
     }
   }
 
-  findPiece(position) {
+  #findPiece(position) {
     let currentPos = 0;
     let i = 0;
 
     do {
-      const piece = this.pieces[i];
-
+      const piece = this.#pieces[i];
       const nextPos = currentPos + piece.length;
-      console.log({ position, piece, nextPos });
 
       if (nextPos >= position) {
         return { index: i, offset: position - currentPos };
       }
 
-      currentPos = nextPos;
-      i++;
-    } while (i < this.pieces.length);
+      [currentPos, i] = [nextPos, i + 1];
+    } while (i < this.#pieces.length);
   }
 
   insert(position, char) {
-    this.validatePos(position);
+    this.#validatePos(position);
 
-    const newPieceStart = this.add.length;
-    this.add += decoder.decode(new Uint8Array([char]));
+    const newPieceStart = this.#add.length;
+    this.#add += decoder.decode(new Uint8Array([char]));
 
-    const { index, offset } = this.findPiece(position);
-    const piece = this.pieces[index];
+    const { index, offset } = this.#findPiece(position);
+    const piece = this.#pieces[index];
 
     const newPiece = {
-      source: this.add,
+      source: this.#add,
       start: newPieceStart,
       length: [char].length,
     };
 
     if (offset === 0) {
-      this.pieces.splice(index, 0, newPiece);
-      this.bytes = encoder.encode(this.getText());
+      this.#pieces.splice(index, 0, newPiece);
+      this.bytes = encoder.encode(this.#getText());
 
       return position + 1;
     }
 
     if (offset === piece.length) {
-      this.pieces.splice(index + 1, 0, newPiece);
-      this.bytes = encoder.encode(this.getText());
+      this.#pieces.splice(index + 1, 0, newPiece);
+      this.bytes = encoder.encode(this.#getText());
 
       return position + 1;
     }
@@ -121,21 +122,21 @@ export class TextBuffer {
       length: piece.length - offset,
     };
 
-    this.pieces.splice(index, 1, before, newPiece, after);
-    this.bytes = encoder.encode(this.getText());
+    this.#pieces.splice(index, 1, before, newPiece, after);
+    this.bytes = encoder.encode(this.#getText());
 
     return position + 1;
   }
 
   delete(position, length = 1) {
-    this.validatePos(position);
+    this.#validatePos(position);
 
     if (position === 0) return position;
 
     let currentPos = 0;
     const newPieces = [];
 
-    for (const piece of this.pieces) {
+    for (const piece of this.#pieces) {
       const pieceStart = currentPos;
       const pieceEnd = currentPos + piece.length;
 
@@ -164,10 +165,10 @@ export class TextBuffer {
       currentPos = pieceEnd;
     }
 
-    this.pieces = newPieces.length === 0
-      ? [{ source: this.original, start: 0, length: 0 }]
+    this.#pieces = newPieces.length === 0
+      ? [{ source: this.#original, start: 0, length: 0 }]
       : newPieces;
-    this.bytes = encoder.encode(this.getText());
+    this.bytes = encoder.encode(this.#getText());
 
     return position - 1;
   }
