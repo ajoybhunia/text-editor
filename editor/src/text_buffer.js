@@ -44,7 +44,7 @@ export class TextBuffer {
       { source: this.#original, start: 0, length: this.#original.length },
     ];
     this.bytes = encoder.encode(this.#getText());
-    this.records = [this.#pieces];
+    // this.records = [this.#pieces];
   }
 
   get length() {

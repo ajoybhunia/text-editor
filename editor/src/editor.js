@@ -52,15 +52,61 @@ export class Editor {
     };
   }
 
+  #nextLineFeed() {
+    for (let i = this.#cursor.pos; i <= this.#buffer.length; i++) {
+      if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
+    }
+
+    return this.#buffer.length;
+  }
+
+  async #handleDeleteLine() {
+    const motion = await Terminal.readKey();
+
+    if (motion === KEYS[0]) {
+      this.#cursor.pos = this.#buffer.delete(
+        this.#cursor.pos,
+        this.#cursor.pos - this.#prevLineFeed(),
+      );
+    }
+
+    if (motion === KEYS.$) {
+      this.#cursor.pos = this.#buffer.delete(
+        this.#nextLineFeed(),
+        this.#nextLineFeed() - this.#cursor.pos,
+      );
+    }
+
+    if (motion === KEYS.d) {
+      const nextLineFeed = this.#nextLineFeed();
+      const next = nextLineFeed === this.#buffer.length
+        ? this.#buffer.length
+        : nextLineFeed + 1;
+
+      this.#cursor.pos = this.#buffer.delete(
+        next,
+        next - this.#cursor.pos,
+      );
+      this.#cursor.pos = this.#buffer.delete(
+        this.#cursor.pos,
+        this.#cursor.pos - this.#prevLineFeed(),
+      );
+    }
+  }
+
   async #handleNormal(key) {
     if (key === KEYS.i) { // i -> insert
       this.#mode = MODES.MODE_INSERT;
       return await this.#handleInsert();
     }
 
-    if (key === KEYS[":"]) { // : => CLI
+    if (key === KEYS[":"]) { // : -> CLI
       this.#mode = MODES.MODE_CLI;
       return await this.#handleCLI();
+    }
+
+    if (key === KEYS.d) { // d -> delete line command
+      await this.#handleDeleteLine();
     }
 
     const normalKeyFns = this.#normalModeCursorMovement();
