@@ -60,6 +60,14 @@ export class Editor {
     return this.#buffer.length;
   }
 
+  #prevLineFeed() {
+    for (let i = this.#cursor.pos; i >= 0; i--) {
+      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
+    }
+
+    return 0;
+  }
+
   async #handleDeleteLine() {
     const motion = await Terminal.readKey();
 
@@ -92,6 +100,16 @@ export class Editor {
         this.#cursor.pos - this.#prevLineFeed(),
       );
     }
+
+    if (motion === KEYS[":"]) { // : -> CLI
+      this.#mode = MODES.MODE_CLI;
+      return await this.#handleCLI();
+    }
+
+    if (motion === KEYS.i) { // i -> insert
+      this.#mode = MODES.MODE_INSERT;
+      return await this.#handleInsert();
+    }
   }
 
   async #handleNormal(key) {
@@ -106,7 +124,7 @@ export class Editor {
     }
 
     if (key === KEYS.d) { // d -> delete line command
-      await this.#handleDeleteLine();
+      return await this.#handleDeleteLine();
     }
 
     const normalKeyFns = this.#normalModeCursorMovement();
@@ -114,14 +132,6 @@ export class Editor {
     const callback = normalKeyFns[key] || arrowKeyFns[key];
 
     if (callback !== undefined) return callback();
-  }
-
-  #prevLineFeed() {
-    for (let i = this.#cursor.pos; i >= 0; i--) {
-      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
-    }
-
-    return 0;
   }
 
   #NAKPos() {
@@ -158,9 +168,9 @@ export class Editor {
       if (key === KEYS.ESC) {
         this.#mode = MODES.MODE_NORMAL;
         return { shouldReturn: false };
-      } else if (cursorFns[key] !== undefined) {
+      } else if (key in cursorFns) {
         cursorFns[key]();
-      } else if (byteFns[key] !== undefined) {
+      } else if (key in byteFns) {
         this.#cursor.pos = byteFns[key]();
       } else if (typeof key === "number") {
         this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
@@ -198,9 +208,9 @@ export class Editor {
 
       if (key === KEYS.CR) {
         const quitOptions = this.#quitOptions();
-        const callback = quitOptions[decoder.decode(cmdBuff.bytes)];
+        const cmd = decoder.decode(cmdBuff.bytes);
 
-        if (callback !== undefined) return callback();
+        if (cmd in quitOptions) return quitOptions[cmd]();
 
         this.#mode = MODES.MODE_NORMAL;
         return;
