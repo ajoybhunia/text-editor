@@ -132,8 +132,6 @@ export class TextBuffer {
   delete(position, length = 1) {
     this.#validatePos(position);
 
-    // if (position === 0) return position;
-
     let currentPos = 0;
     const newPieces = [];
 
@@ -142,7 +140,7 @@ export class TextBuffer {
       const pieceEnd = currentPos + piece.length;
 
       const deleteStart = position - length;
-      const deleteEnd = position /* - length + length */;
+      const deleteEnd = position;
 
       const before = {
         source: piece.source,

@@ -71,6 +71,14 @@ export class Editor {
   }
 
   #prevLineFeed() {
+    for (let i = this.#cursor.pos; i >= 0; i--) {
+      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
+    }
+
+    return 0;
+  }
+
+  #NAKPos() {
     const { row, col } = this.#computeCursor(
       this.#buffer.bytes,
       this.#cursor.pos,
@@ -78,11 +86,7 @@ export class Editor {
 
     if (col === 1 && row !== 1) return this.#cursor.pos - 1;
 
-    for (let i = this.#cursor.pos; i >= 0; i--) {
-      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
-    }
-
-    return 0;
+    return this.#prevLineFeed();
   }
 
   #insertByteCallback() {
@@ -92,7 +96,7 @@ export class Editor {
       [KEYS.NAK]: () =>
         this.#buffer.delete(
           this.#cursor.pos,
-          this.#cursor.pos - this.#prevLineFeed(),
+          this.#cursor.pos - this.#NAKPos(),
         ),
     };
   }
@@ -133,9 +137,8 @@ export class Editor {
     const cmdBuff = new TextBuffer(":");
     let pos = cmdBuff.length;
 
-    await this.#render(cmdBuff.bytes, pos);
-
     while (true) {
+      await this.#render(cmdBuff.bytes, pos);
       const key = await Terminal.readKey();
 
       pos = (key === KEYS.BACKSPACE)
@@ -156,8 +159,6 @@ export class Editor {
         this.#mode = MODES.MODE_NORMAL;
         return;
       }
-
-      this.#render(cmdBuff.bytes, pos);
     }
   }
 
