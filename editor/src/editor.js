@@ -114,6 +114,7 @@ export class Editor {
 
   async #handleNormal(key) {
     if (key === KEYS.i) { // i -> insert
+      this.#buffer.save(this.#cursor.pos);
       this.#mode = MODES.MODE_INSERT;
       return await this.#handleInsert();
     }
@@ -124,7 +125,16 @@ export class Editor {
     }
 
     if (key === KEYS.d) { // d -> delete line command
+      this.#buffer.save(this.#cursor.pos);
       return await this.#handleDeleteLine();
+    }
+
+    if (key === KEYS.u) { // u -> undo
+      const cursorPosition = this.#buffer.undo();
+
+      if (cursorPosition !== null) {
+        this.#cursor.pos = cursorPosition;
+      }
     }
 
     const normalKeyFns = this.#normalModeCursorMovement();
