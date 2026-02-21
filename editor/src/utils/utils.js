@@ -60,3 +60,12 @@ export const arrowKeyCursorMovement = {
   [KEYS.UP]: "moveUp",
   [KEYS.DOWN]: "moveDown",
 };
+
+export const normalModeCursorMovement = {
+  [KEYS.h]: "moveLeft",
+  [KEYS.l]: "moveRight",
+  [KEYS.j]: "moveDown",
+  [KEYS.k]: "moveUp",
+  [KEYS["0"]]: "moveToFirst",
+  [KEYS.$]: "moveToLast",
+};

@@ -5,6 +5,7 @@ import {
   arrowKeyCursorMovement,
   KEYS,
   MODES,
+  normalModeCursorMovement,
   quitOptions,
 } from "../utils/utils.js";
 
@@ -35,26 +36,6 @@ export class Editor {
         return info;
       }
     }
-  }
-
-  #arrowKeyCursorMovement() {
-    return {
-      [KEYS.LEFT]: () => this.#cursor.moveLeft(this.#buffer.bytes),
-      [KEYS.RIGHT]: () => this.#cursor.moveRight(this.#buffer.bytes),
-      [KEYS.UP]: () => this.#cursor.moveUp(this.#buffer.bytes),
-      [KEYS.DOWN]: () => this.#cursor.moveDown(this.#buffer.bytes),
-    };
-  }
-
-  #normalModeCursorMovement() {
-    return {
-      [KEYS.h]: () => this.#cursor.moveLeft(this.#buffer.bytes),
-      [KEYS.l]: () => this.#cursor.moveRight(this.#buffer.bytes),
-      [KEYS.j]: () => this.#cursor.moveDown(this.#buffer.bytes),
-      [KEYS.k]: () => this.#cursor.moveUp(this.#buffer.bytes),
-      [KEYS["0"]]: () => this.#cursor.moveToFirst(this.#buffer.bytes),
-      [KEYS.$]: () => this.#cursor.moveToLast(this.#buffer.bytes),
-    };
   }
 
   #nextLineFeed() {
@@ -106,32 +87,26 @@ export class Editor {
       );
     }
 
-    if (motion === KEYS[":"]) { // : -> CLI
+    return this.#handleModes(motion);
+  }
+
+  async #handleModes(key) {
+    if (key === KEYS[":"]) { // : -> CLI
+      const _pos = this.#buffer.undo();
       this.#mode = MODES.CLI;
       return await this.#handleCLI();
     }
 
-    if (motion === KEYS.i) { // i -> insert
+    if (key === KEYS.i) { // i -> insert
+      this.#buffer.save(this.#cursor.pos);
       this.#mode = MODES.INSERT;
       return await this.#handleInsert();
     }
   }
 
   async #handleNormal(key) {
-    if (key === KEYS.i) { // i -> insert
-      this.#buffer.save(this.#cursor.pos);
-      this.#mode = MODES.INSERT;
-      return await this.#handleInsert();
-    }
-
-    if (key === KEYS[":"]) { // : -> CLI
-      this.#mode = MODES.CLI;
-      return await this.#handleCLI();
-    }
-
-    if (key === KEYS.d) { // d -> delete line command
-      this.#buffer.save(this.#cursor.pos);
-      return await this.#handleDeleteLine();
+    if (key === KEYS.i || key === KEYS[":"]) {
+      return this.#handleModes(key);
     }
 
     if (key === KEYS.u) { // u -> undo
@@ -142,11 +117,14 @@ export class Editor {
       }
     }
 
-    const normalKeyFns = this.#normalModeCursorMovement();
-    const arrowKeyFns = this.#arrowKeyCursorMovement();
-    const callback = normalKeyFns[key] || arrowKeyFns[key];
+    if (key === KEYS.d) { // d -> delete line command
+      this.#buffer.save(this.#cursor.pos);
+      return await this.#handleDeleteLine();
+    }
 
-    if (callback !== undefined) return callback();
+    const method = normalModeCursorMovement[key] || arrowKeyCursorMovement[key];
+
+    if (method !== undefined) return this.#cursor[method](this.#buffer.bytes);
   }
 
   #NAKPos() {
