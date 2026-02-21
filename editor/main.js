@@ -1,55 +1,24 @@
-import { Editor } from "./src/editor.js";
-import { Terminal } from "./src/terminal.js";
+import { getFileBuffer } from "./src/utils/fs_utils.js";
+import { editAndPersist } from "./src/core/launch_editor.js";
 
-/* const main = async (filePath) => {
-  const file = await Deno.open(filePath, {
-    read: true,
-    write: true,
-    create: true,
-  });
-
-  const { size } = await Deno.stat(filePath);
-
-  const buffer = new Uint8Array(size);
-  const n = await file.read(buffer);
-  file.close();
-
-  const editor = new Editor(buffer.subarray(0, n));
-  const info = await editor.run();
-
-  if (info.shouldWrite) await Deno.writeFile(filePath, info.data);
-  await Terminal.clear();
-};
-
-await main(Deno.args[0]); */
+const encoder = new TextEncoder();
 
 const main = async (filePath) => {
   try {
-    const { isFile, size } = await Deno.stat(filePath);
+    const { isFile, isDirectory } = await Deno.stat(filePath);
 
     if (isFile) {
-      const file = await Deno.open(filePath, { read: true });
-
-      const buffer = new Uint8Array(size);
-      const n = await file.read(buffer);
-      file.close();
-
-      const editor = new Editor(buffer.subarray(0, n));
-      const info = await editor.run();
-
-      if (info.shouldWrite) await Deno.writeFile(filePath, info.data);
-      await Terminal.clear();
+      const buffer = await getFileBuffer(filePath);
+      await editAndPersist(buffer, filePath);
     }
 
-    await Terminal.write(
-      new TextEncoder().encode("Error: Failed to open a directory!"),
-    );
+    if (isDirectory) {
+      await Deno.stdout.write(
+        encoder.encode("Boom: Failed to open a directory!\n"),
+      );
+    }
   } catch {
-    const editor = new Editor(new Uint8Array(0));
-    const info = await editor.run();
-
-    if (info.shouldWrite) await Deno.writeFile(filePath, info.data);
-    await Terminal.clear();
+    await editAndPersist(new Uint8Array(0), filePath);
   }
 };
 

@@ -1,4 +1,4 @@
-import { KEYS } from "./utils.js";
+import { KEYS } from "../utils/utils.js";
 
 const encoder = new TextEncoder();
 const CLEAR = "\x1b[2J\x1b[H";

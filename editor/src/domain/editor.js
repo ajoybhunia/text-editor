@@ -1,7 +1,7 @@
 import { Terminal } from "./terminal.js";
 import { Cursor } from "./cursor.js";
 import { TextBuffer } from "./text_buffer.js";
-import { KEYS, MODES } from "./utils.js";
+import { KEYS, MODES } from "../utils/utils.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -47,7 +47,7 @@ export class Editor {
       [KEYS.l]: () => this.#cursor.moveRight(this.#buffer.bytes),
       [KEYS.j]: () => this.#cursor.moveDown(this.#buffer.bytes),
       [KEYS.k]: () => this.#cursor.moveUp(this.#buffer.bytes),
-      [KEYS[0]]: () => this.#cursor.moveToFirst(this.#buffer.bytes),
+      [KEYS["0"]]: () => this.#cursor.moveToFirst(this.#buffer.bytes),
       [KEYS.$]: () => this.#cursor.moveToLast(this.#buffer.bytes),
     };
   }
@@ -71,7 +71,7 @@ export class Editor {
   async #handleDeleteLine() {
     const motion = await Terminal.readKey();
 
-    if (motion === KEYS[0]) {
+    if (motion === KEYS["0"]) {
       this.#cursor.pos = this.#buffer.delete(
         this.#cursor.pos,
         this.#cursor.pos - this.#prevLineFeed(),

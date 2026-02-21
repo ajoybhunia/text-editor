@@ -1,4 +1,4 @@
-import { KEYS } from "./utils.js";
+import { KEYS } from "../utils/utils.js";
 
 export class Cursor {
   constructor() {
