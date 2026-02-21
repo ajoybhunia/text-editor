@@ -1,7 +1,12 @@
 import { Terminal } from "./terminal.js";
 import { Cursor } from "./cursor.js";
 import { TextBuffer } from "./text_buffer.js";
-import { KEYS, MODES, quitOptions } from "../utils/utils.js";
+import {
+  arrowKeyCursorMovement,
+  KEYS,
+  MODES,
+  quitOptions,
+} from "../utils/utils.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -172,14 +177,13 @@ export class Editor {
       await this.#render(this.#buffer.bytes, this.#cursor.pos);
       const key = await Terminal.readKey();
 
-      const cursorFns = this.#arrowKeyCursorMovement();
       const byteFns = this.#insertByteCallback();
 
       if (key === KEYS.ESC) {
         this.#mode = MODES.NORMAL;
         return { shouldReturn: false };
-      } else if (key in cursorFns) {
-        cursorFns[key]();
+      } else if (key in arrowKeyCursorMovement) {
+        this.#cursor[arrowKeyCursorMovement[key]](this.#buffer.bytes);
       } else if (key in byteFns) {
         this.#cursor.pos = byteFns[key]();
       } else if (typeof key === "number") {

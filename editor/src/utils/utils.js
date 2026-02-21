@@ -54,9 +54,9 @@ export const quitOptions = {
   }),
 };
 
-// export const arrowKeyCursorMovement = {
-//   [KEYS.LEFT]: () => this.#cursor.moveLeft(this.#buffer.bytes),
-//   [KEYS.RIGHT]: () => this.#cursor.moveRight(this.#buffer.bytes),
-//   [KEYS.UP]: () => this.#cursor.moveUp(this.#buffer.bytes),
-//   [KEYS.DOWN]: () => this.#cursor.moveDown(this.#buffer.bytes),
-// };
+export const arrowKeyCursorMovement = {
+  [KEYS.LEFT]: "moveLeft",
+  [KEYS.RIGHT]: "moveRight",
+  [KEYS.UP]: "moveUp",
+  [KEYS.DOWN]: "moveDown",
+};
