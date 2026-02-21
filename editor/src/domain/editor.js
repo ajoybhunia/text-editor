@@ -1,7 +1,7 @@
 import { Terminal } from "./terminal.js";
 import { Cursor } from "./cursor.js";
 import { TextBuffer } from "./text_buffer.js";
-import { KEYS, MODES } from "../utils/utils.js";
+import { KEYS, MODES, quitOptions } from "../utils/utils.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -14,7 +14,7 @@ export class Editor {
   constructor(bytes) {
     this.#buffer = new TextBuffer(decoder.decode(bytes));
     this.#cursor = new Cursor();
-    this.#mode = MODES.MODE_NORMAL;
+    this.#mode = MODES.NORMAL;
   }
 
   async run() {
@@ -102,12 +102,12 @@ export class Editor {
     }
 
     if (motion === KEYS[":"]) { // : -> CLI
-      this.#mode = MODES.MODE_CLI;
+      this.#mode = MODES.CLI;
       return await this.#handleCLI();
     }
 
     if (motion === KEYS.i) { // i -> insert
-      this.#mode = MODES.MODE_INSERT;
+      this.#mode = MODES.INSERT;
       return await this.#handleInsert();
     }
   }
@@ -115,12 +115,12 @@ export class Editor {
   async #handleNormal(key) {
     if (key === KEYS.i) { // i -> insert
       this.#buffer.save(this.#cursor.pos);
-      this.#mode = MODES.MODE_INSERT;
+      this.#mode = MODES.INSERT;
       return await this.#handleInsert();
     }
 
     if (key === KEYS[":"]) { // : -> CLI
-      this.#mode = MODES.MODE_CLI;
+      this.#mode = MODES.CLI;
       return await this.#handleCLI();
     }
 
@@ -176,7 +176,7 @@ export class Editor {
       const byteFns = this.#insertByteCallback();
 
       if (key === KEYS.ESC) {
-        this.#mode = MODES.MODE_NORMAL;
+        this.#mode = MODES.NORMAL;
         return { shouldReturn: false };
       } else if (key in cursorFns) {
         cursorFns[key]();
@@ -186,17 +186,6 @@ export class Editor {
         this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
       }
     }
-  }
-
-  #quitOptions() {
-    return {
-      ":qa!\r": () => ({ shouldReturn: true, shouldWrite: false }),
-      ":wq!\r": () => ({
-        shouldReturn: true,
-        shouldWrite: true,
-        data: this.#buffer.bytes,
-      }),
-    };
   }
 
   async #handleCLI() {
@@ -212,17 +201,15 @@ export class Editor {
         : cmdBuff.insert(pos, key);
 
       if (key === KEYS.ESC || cmdBuff.length === 0) {
-        this.#mode = MODES.MODE_NORMAL;
+        this.#mode = MODES.NORMAL;
         return;
       }
 
       if (key === KEYS.CR) {
-        const quitOptions = this.#quitOptions();
-        const cmd = decoder.decode(cmdBuff.bytes);
+        const cmd = decoder.decode(cmdBuff.bytes).trim();
+        if (cmd in quitOptions) return quitOptions[cmd](this.#buffer.bytes);
 
-        if (cmd in quitOptions) return quitOptions[cmd]();
-
-        this.#mode = MODES.MODE_NORMAL;
+        this.#mode = MODES.NORMAL;
         return;
       }
     }

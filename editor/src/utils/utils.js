@@ -26,7 +26,37 @@ export const KEYS = {
 };
 
 export const MODES = {
-  MODE_NORMAL: "-- NORMAL --",
-  MODE_INSERT: "-- INSERT --",
-  MODE_CLI: "-- COMMAND LINE --",
+  NORMAL: "-- NORMAL --",
+  INSERT: "-- INSERT --",
+  CLI: "-- COMMAND LINE --",
 };
+
+export const compassNavigationKey = {
+  [KEYS.A]: KEYS.UP,
+  [KEYS.B]: KEYS.DOWN,
+  [KEYS.C]: KEYS.RIGHT,
+  [KEYS.D]: KEYS.LEFT,
+};
+
+export const quitOptions = {
+  ":qa!": () => ({ shouldReturn: true, shouldWrite: false }),
+  ":qa": () => ({ shouldReturn: true, shouldWrite: false }),
+  ":q": () => ({ shouldReturn: true, shouldWrite: false }),
+  ":wq!": (bytes) => ({
+    shouldReturn: true,
+    shouldWrite: true,
+    data: bytes,
+  }),
+  ":wq": (bytes) => ({
+    shouldReturn: true,
+    shouldWrite: true,
+    data: bytes,
+  }),
+};
+
+// export const arrowKeyCursorMovement = {
+//   [KEYS.LEFT]: () => this.#cursor.moveLeft(this.#buffer.bytes),
+//   [KEYS.RIGHT]: () => this.#cursor.moveRight(this.#buffer.bytes),
+//   [KEYS.UP]: () => this.#cursor.moveUp(this.#buffer.bytes),
+//   [KEYS.DOWN]: () => this.#cursor.moveDown(this.#buffer.bytes),
+// };
