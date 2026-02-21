@@ -2,10 +2,10 @@ import { Terminal } from "./terminal.js";
 import { Cursor } from "./cursor.js";
 import { TextBuffer } from "./text_buffer.js";
 import {
-  arrowKeyCursorMovement,
+  arrowKeyMovementMap,
   KEYS,
   MODES,
-  normalModeCursorMovement,
+  normalModeMovementMap,
   quitOptions,
 } from "../utils/utils.js";
 
@@ -16,11 +16,22 @@ export class Editor {
   #buffer;
   #cursor;
   #mode;
+  #insertByteMap;
 
   constructor(bytes) {
     this.#buffer = new TextBuffer(decoder.decode(bytes));
     this.#cursor = new Cursor();
     this.#mode = MODES.NORMAL;
+
+    this.#insertByteMap = {
+      [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos, 1),
+      [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.NEW_LINE),
+      [KEYS.NAK]: () =>
+        this.#buffer.delete(
+          this.#cursor.pos,
+          this.#cursor.pos - this.#NAKPos(),
+        ),
+    };
   }
 
   async run() {
@@ -39,7 +50,7 @@ export class Editor {
   }
 
   #nextLineFeed() {
-    for (let i = this.#cursor.pos; i <= this.#buffer.length; i++) {
+    for (let i = this.#cursor.pos; i < this.#buffer.length; i++) {
       if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
     }
 
@@ -47,7 +58,7 @@ export class Editor {
   }
 
   #prevLineFeed() {
-    for (let i = this.#cursor.pos; i >= 0; i--) {
+    for (let i = this.#cursor.pos; i > 0; i--) {
       if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
     }
 
@@ -122,7 +133,7 @@ export class Editor {
       return await this.#handleDeleteLine();
     }
 
-    const method = normalModeCursorMovement[key] || arrowKeyCursorMovement[key];
+    const method = normalModeMovementMap[key] || arrowKeyMovementMap[key];
 
     if (method !== undefined) return this.#cursor[method](this.#buffer.bytes);
   }
@@ -138,32 +149,18 @@ export class Editor {
     return this.#prevLineFeed();
   }
 
-  #insertByteCallback() {
-    return {
-      [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos, 1),
-      [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.NEW_LINE),
-      [KEYS.NAK]: () =>
-        this.#buffer.delete(
-          this.#cursor.pos,
-          this.#cursor.pos - this.#NAKPos(),
-        ),
-    };
-  }
-
   async #handleInsert() {
     while (true) {
       await this.#render(this.#buffer.bytes, this.#cursor.pos);
       const key = await Terminal.readKey();
 
-      const byteFns = this.#insertByteCallback();
-
       if (key === KEYS.ESC) {
         this.#mode = MODES.NORMAL;
         return { shouldReturn: false };
-      } else if (key in arrowKeyCursorMovement) {
-        this.#cursor[arrowKeyCursorMovement[key]](this.#buffer.bytes);
-      } else if (key in byteFns) {
-        this.#cursor.pos = byteFns[key]();
+      } else if (key in arrowKeyMovementMap) {
+        this.#cursor[arrowKeyMovementMap[key]](this.#buffer.bytes);
+      } else if (key in this.#insertByteMap) {
+        this.#cursor.pos = this.#insertByteMap[key]();
       } else if (typeof key === "number") {
         this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
       }

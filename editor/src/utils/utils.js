@@ -1,8 +1,4 @@
 export const KEYS = {
-  UP: "UP",
-  DOWN: "DOWN",
-  LEFT: "LEFT",
-  RIGHT: "RIGHT",
   ESC: 0x1b,
   BACKSPACE: 0x7f,
   CR: 0x0d,
@@ -31,11 +27,27 @@ export const MODES = {
   CLI: "-- COMMAND LINE --",
 };
 
-export const compassNavigationKey = {
-  [KEYS.A]: KEYS.UP,
-  [KEYS.B]: KEYS.DOWN,
-  [KEYS.C]: KEYS.RIGHT,
-  [KEYS.D]: KEYS.LEFT,
+export const cursorNavigationMap = {
+  [KEYS.A]: "up",
+  [KEYS.B]: "down",
+  [KEYS.C]: "right",
+  [KEYS.D]: "left",
+};
+
+export const arrowKeyMovementMap = {
+  up: "moveUp",
+  down: "moveDown",
+  right: "moveRight",
+  left: "moveLeft",
+};
+
+export const normalModeMovementMap = {
+  [KEYS.h]: "moveLeft",
+  [KEYS.l]: "moveRight",
+  [KEYS.j]: "moveDown",
+  [KEYS.k]: "moveUp",
+  [KEYS["0"]]: "moveToFirst",
+  [KEYS.$]: "moveToLast",
 };
 
 export const quitOptions = {
@@ -52,20 +64,4 @@ export const quitOptions = {
     shouldWrite: true,
     data: bytes,
   }),
-};
-
-export const arrowKeyCursorMovement = {
-  [KEYS.LEFT]: "moveLeft",
-  [KEYS.RIGHT]: "moveRight",
-  [KEYS.UP]: "moveUp",
-  [KEYS.DOWN]: "moveDown",
-};
-
-export const normalModeCursorMovement = {
-  [KEYS.h]: "moveLeft",
-  [KEYS.l]: "moveRight",
-  [KEYS.j]: "moveDown",
-  [KEYS.k]: "moveUp",
-  [KEYS["0"]]: "moveToFirst",
-  [KEYS.$]: "moveToLast",
 };

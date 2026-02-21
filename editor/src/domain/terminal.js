@@ -1,4 +1,4 @@
-import { compassNavigationKey, KEYS } from "../utils/utils.js";
+import { cursorNavigationMap, KEYS } from "../utils/utils.js";
 
 const encoder = new TextEncoder();
 const CLEAR = "\x1b[2J\x1b[H";
@@ -22,7 +22,7 @@ export const Terminal = {
 
     if (!n) return null;
     if (buf[0] === KEYS.ESC && buf[1] === KEYS["["]) {
-      return compassNavigationKey[buf[2]];
+      return cursorNavigationMap[buf[2]];
     }
 
     return buf[0];
