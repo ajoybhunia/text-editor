@@ -42,7 +42,7 @@ export class Editor {
       const key = await Terminal.readKey();
       const info = await this.#handleNormal(key);
 
-      if (info && info.shouldReturn) {
+      if (info.shouldReturn) {
         Deno.stdin.setRaw(false);
         return info;
       }
@@ -65,14 +65,14 @@ export class Editor {
     return 0;
   }
 
-  async #handleDeleteLine() {
-    const motion = await Terminal.readKey();
-
+  async #handleDeleteLine(motion) {
     if (motion === KEYS["0"]) {
       this.#cursor.pos = this.#buffer.delete(
         this.#cursor.pos,
         this.#cursor.pos - this.#prevLineFeed(),
       );
+
+      return { shouldReturn: false };
     }
 
     if (motion === KEYS.$) {
@@ -80,6 +80,8 @@ export class Editor {
         this.#nextLineFeed(),
         this.#nextLineFeed() - this.#cursor.pos,
       );
+
+      return { shouldReturn: false };
     }
 
     if (motion === KEYS.d) {
@@ -96,9 +98,11 @@ export class Editor {
         this.#cursor.pos,
         this.#cursor.pos - this.#prevLineFeed(),
       );
+
+      return { shouldReturn: false };
     }
 
-    return this.#handleModes(motion);
+    return await this.#handleModes(motion);
   }
 
   async #handleModes(key) {
@@ -109,7 +113,6 @@ export class Editor {
     }
 
     if (key === KEYS.i) { // i -> insert
-      this.#buffer.save(this.#cursor.pos);
       this.#mode = MODES.INSERT;
       return await this.#handleInsert();
     }
@@ -117,6 +120,7 @@ export class Editor {
 
   async #handleNormal(key) {
     if (key === KEYS.i || key === KEYS[":"]) {
+      this.#buffer.save(this.#cursor.pos);
       return this.#handleModes(key);
     }
 
@@ -126,16 +130,25 @@ export class Editor {
       if (cursorPosition !== null) {
         this.#cursor.pos = cursorPosition;
       }
+
+      return { shouldReturn: false };
     }
 
     if (key === KEYS.d) { // d -> delete line command
-      this.#buffer.save(this.#cursor.pos);
-      return await this.#handleDeleteLine();
+      const motion = await Terminal.readKey();
+
+      if ([KEYS["0"], KEYS.$, KEYS.d, KEYS[":"]].includes(motion)) {
+        this.#buffer.save(this.#cursor.pos);
+        return await this.#handleDeleteLine(motion);
+      }
     }
 
-    const method = normalModeMovementMap[key] || arrowKeyMovementMap[key];
+    const mapper = normalModeMovementMap[key] || arrowKeyMovementMap[key];
+    if (mapper !== undefined) {
+      this.#cursor[mapper](this.#buffer.bytes);
+    }
 
-    if (method !== undefined) return this.#cursor[method](this.#buffer.bytes);
+    return { shouldReturn: false };
   }
 
   #NAKPos() {
@@ -181,7 +194,7 @@ export class Editor {
 
       if (key === KEYS.ESC || cmdBuff.length === 0) {
         this.#mode = MODES.NORMAL;
-        return;
+        return { shouldReturn: false };
       }
 
       if (key === KEYS.CR) {
@@ -189,7 +202,7 @@ export class Editor {
         if (cmd in quitOptions) return quitOptions[cmd](this.#buffer.bytes);
 
         this.#mode = MODES.NORMAL;
-        return;
+        return { shouldReturn: false };
       }
     }
   }
