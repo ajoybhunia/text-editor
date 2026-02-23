@@ -6,6 +6,10 @@ export class Cursor {
     this.prevCol = this.pos;
   }
 
+  updatePrevCol(buffer) {
+    this.prevCol = this.#column(buffer);
+  }
+
   #lineStart(buffer) {
     let p = this.pos;
     while (p > 0 && buffer[p - 1] !== KEYS.NEW_LINE) p--;

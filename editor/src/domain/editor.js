@@ -54,7 +54,7 @@ export class Editor {
       if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
     }
 
-    return this.#buffer.length;
+    return this.#cursor.pos;
   }
 
   #prevLineFeed() {
@@ -65,41 +65,35 @@ export class Editor {
     return 0;
   }
 
+  #deleteTextSpan(position, length) {
+    this.#cursor.pos = this.#buffer.delete(position, length);
+    this.#cursor.updatePrevCol(this.#buffer.bytes);
+
+    return { shouldReturn: false };
+  }
+
   async #handleDeleteLine(motion) {
     if (motion === KEYS["0"]) {
-      this.#cursor.pos = this.#buffer.delete(
-        this.#cursor.pos,
-        this.#cursor.pos - this.#prevLineFeed(),
-      );
-
-      return { shouldReturn: false };
+      const lengthToDelete = this.#cursor.pos -
+        this.#prevLineFeed(this.#cursor.pos);
+      return this.#deleteTextSpan(this.#cursor.pos, lengthToDelete);
     }
 
     if (motion === KEYS.$) {
-      this.#cursor.pos = this.#buffer.delete(
-        this.#nextLineFeed(),
-        this.#nextLineFeed() - this.#cursor.pos,
-      );
-
-      return { shouldReturn: false };
+      const nextLineFeed = this.#nextLineFeed();
+      const lengthToDelete = nextLineFeed - this.#cursor.pos;
+      return this.#deleteTextSpan(nextLineFeed, lengthToDelete);
     }
 
     if (motion === KEYS.d) {
       const nextLineFeed = this.#nextLineFeed();
-      const next = nextLineFeed === this.#buffer.length
-        ? this.#buffer.length
-        : nextLineFeed + 1;
+      const prevLineFeed = this.#prevLineFeed();
 
-      this.#cursor.pos = this.#buffer.delete(
-        next,
-        next - this.#cursor.pos,
-      );
-      this.#cursor.pos = this.#buffer.delete(
-        this.#cursor.pos,
-        this.#cursor.pos - this.#prevLineFeed(),
-      );
+      const [next, lengthToDelete] = this.#cursor.pos === this.#buffer.length
+        ? [this.#cursor.pos, this.#cursor.pos - prevLineFeed + 1]
+        : [nextLineFeed + 1, nextLineFeed - prevLineFeed + 1];
 
-      return { shouldReturn: false };
+      return this.#deleteTextSpan(next, lengthToDelete);
     }
 
     return await this.#handleModes(motion);
