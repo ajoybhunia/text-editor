@@ -67,6 +67,10 @@ export class TextBuffer {
     return currentContent.cursorPos;
   }
 
+  #getPiece(source, start, length) {
+    return { source, start, length };
+  }
+
   insert(position, char) {
     this.#validatePos(position);
 
@@ -76,11 +80,7 @@ export class TextBuffer {
     const { index, offset } = this.#findPiece(position);
     const piece = this.pieces[index];
 
-    const newPiece = {
-      source: this.#add,
-      start: newPieceStart,
-      length: [char].length,
-    };
+    const newPiece = this.#getPiece(this.#add, newPieceStart, [char].length);
 
     if (offset === 0) {
       this.pieces.splice(index, 0, newPiece);
@@ -96,17 +96,12 @@ export class TextBuffer {
       return position + 1;
     }
 
-    const before = {
-      source: piece.source,
-      start: piece.start,
-      length: offset,
-    };
-
-    const after = {
-      source: piece.source,
-      start: piece.start + offset,
-      length: piece.length - offset,
-    };
+    const before = this.#getPiece(piece.source, piece.start, offset);
+    const after = this.#getPiece(
+      piece.source,
+      piece.start + offset,
+      piece.length - offset,
+    );
 
     this.pieces.splice(index, 1, before, newPiece, after);
     this.bytes = encoder.encode(this.#getText());
@@ -127,17 +122,17 @@ export class TextBuffer {
       const deleteStart = position - length;
       const deleteEnd = position;
 
-      const before = {
-        source: piece.source,
-        start: piece.start,
-        length: deleteStart - pieceStart,
-      };
+      const before = this.#getPiece(
+        piece.source,
+        piece.start,
+        deleteStart - pieceStart,
+      );
 
-      const after = {
-        source: piece.source,
-        start: piece.start + (deleteEnd - pieceStart),
-        length: pieceEnd - deleteEnd,
-      };
+      const after = this.#getPiece(
+        piece.source,
+        piece.start + (deleteEnd - pieceStart),
+        pieceEnd - deleteEnd,
+      );
 
       if (pieceEnd <= deleteStart || pieceStart >= deleteEnd) {
         newPieces.push(piece);
