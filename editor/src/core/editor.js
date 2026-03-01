@@ -1,6 +1,6 @@
-import { Terminal } from "../terminal/terminal.js";
 import Cursor from "../domain/cursor.js";
 import TextBuffer from "../domain/text_buffer.js";
+import { Terminal } from "../terminal/terminal.js";
 import { render } from "../terminal/terminal_renderer.js";
 import { computeCursorPos } from "../utils/compute_cursor.js";
 import { KEYS } from "../config/keys.js";
