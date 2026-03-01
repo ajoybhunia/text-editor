@@ -24,10 +24,10 @@ const main = async () => {
     }
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
-      await editAndPersist(new Uint8Array(0), filePath);
-    } else {
-      console.error("Error: ", err.message);
+      return await editAndPersist(new Uint8Array(0), filePath);
     }
+
+    console.error("Error: ", err.message);
   }
 };
 
