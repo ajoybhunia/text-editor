@@ -1,4 +1,5 @@
-import { cursorNavigationMap, KEYS } from "../utils/utils.js";
+import { cursorNavigationMap } from "../config/editor_config.js";
+import { KEYS } from "../config/keys.js";
 
 const encoder = new TextEncoder();
 const CLEAR = "\x1b[2J\x1b[H";

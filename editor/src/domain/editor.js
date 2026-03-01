@@ -1,18 +1,19 @@
 import { Terminal } from "./terminal.js";
-import { Cursor } from "./cursor.js";
-import { TextBuffer } from "./text_buffer.js";
+import Cursor from "./cursor.js";
+import TextBuffer from "./text_buffer.js";
+import { render } from "./terminal_renderer.js";
+import { computeCursorPos } from "../utils/compute_cursor.js";
+import { KEYS } from "../config/keys.js";
+import { MODES } from "../config/modes.js";
 import {
   arrowKeyMovementMap,
-  KEYS,
-  MODES,
   normalModeMovementMap,
   quitOptions,
-} from "../utils/utils.js";
+} from "../config/editor_config.js";
 
-const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export class Editor {
+export default class Editor {
   #buffer;
   #cursor;
   #mode;
@@ -38,7 +39,7 @@ export class Editor {
     Deno.stdin.setRaw(true);
 
     while (true) {
-      await this.#render(this.#buffer.bytes, this.#cursor.pos);
+      await render(this.#buffer.bytes, this.#cursor.pos, this.#mode);
       const key = await Terminal.readKey();
       const info = await this.#handleNormal(key);
 
@@ -146,7 +147,7 @@ export class Editor {
   }
 
   #NAKPos() {
-    const { row, col } = this.#computeCursor(
+    const { row, col } = computeCursorPos(
       this.#buffer.bytes,
       this.#cursor.pos,
     );
@@ -158,7 +159,7 @@ export class Editor {
 
   async #handleInsert() {
     while (true) {
-      await this.#render(this.#buffer.bytes, this.#cursor.pos);
+      await render(this.#buffer.bytes, this.#cursor.pos, this.#mode);
       const key = await Terminal.readKey();
 
       if (key === KEYS.ESC) {
@@ -179,7 +180,7 @@ export class Editor {
     let pos = cmdBuff.length;
 
     while (true) {
-      await this.#render(cmdBuff.bytes, pos);
+      await render(cmdBuff.bytes, pos, this.#mode);
       const key = await Terminal.readKey();
 
       pos = (key === KEYS.BACKSPACE)
@@ -199,34 +200,5 @@ export class Editor {
         return { shouldReturn: false };
       }
     }
-  }
-
-  #computeCursor(bytes, pos) {
-    let row = 1, col = 1;
-
-    for (let i = 0; i < pos; i++) {
-      bytes[i] === KEYS.NEW_LINE ? (row++, col = 1) : col++;
-    }
-
-    return { row, col };
-  }
-
-  async #placeCursor(bytes, pos) {
-    const { row, col } = this.#computeCursor(bytes, pos);
-    await Terminal.placeCursor(row, col);
-  }
-
-  async #drawStatus() {
-    const status = this.#mode;
-    await Terminal.write(
-      new Uint8Array([KEYS.NEW_LINE, KEYS.NEW_LINE, ...encoder.encode(status)]),
-    );
-  }
-
-  async #render(bytes, pos) {
-    await Terminal.clear();
-    await Terminal.write(bytes);
-    await this.#drawStatus();
-    await this.#placeCursor(bytes, pos);
   }
 }

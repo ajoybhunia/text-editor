@@ -1,7 +1,7 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export class TextBuffer {
+export default class TextBuffer {
   #original;
   #add;
 

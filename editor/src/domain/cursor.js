@@ -1,6 +1,6 @@
-import { KEYS } from "../utils/utils.js";
+import { KEYS } from "../config/keys.js";
 
-export class Cursor {
+export default class Cursor {
   constructor() {
     this.pos = 0;
     this.prevCol = this.pos;
