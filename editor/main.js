@@ -1,5 +1,5 @@
 import { getFileBuffer } from "./src/utils/fs_utils.js";
-import { editAndPersist } from "./src/core/launch_editor.js";
+import { editAndPersist } from "./src/bin/launch_editor.js";
 
 const main = async (filePath) => {
   const encoder = new TextEncoder();
