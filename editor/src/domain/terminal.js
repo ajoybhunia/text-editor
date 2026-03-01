@@ -1,4 +1,4 @@
-import { cursorNavigationMap } from "../config/editor_config.js";
+import { cursorNavigationMap } from "../config/keymaps.js/arrows.js";
 import { KEYS } from "../config/keys.js";
 
 const encoder = new TextEncoder();

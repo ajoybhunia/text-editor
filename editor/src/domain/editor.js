@@ -5,11 +5,9 @@ import { render } from "./terminal_renderer.js";
 import { computeCursorPos } from "../utils/compute_cursor.js";
 import { KEYS } from "../config/keys.js";
 import { MODES } from "../config/modes.js";
-import {
-  arrowKeyMovementMap,
-  normalModeMovementMap,
-  quitOptions,
-} from "../config/editor_config.js";
+import { quitOptions } from "../config/commands/quit_options.js";
+import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
+import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
 
 const decoder = new TextDecoder();
 
