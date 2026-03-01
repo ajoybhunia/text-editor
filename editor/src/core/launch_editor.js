@@ -1,6 +1,6 @@
 import { editFile } from "./edit_file.js";
 import { writeFile } from "../utils/fs_utils.js";
-import { Terminal } from "../domain/terminal.js";
+import { Terminal } from "../terminal/terminal.js";
 
 export const editAndPersist = async (buffer, filePath) => {
   const info = await editFile(buffer);
