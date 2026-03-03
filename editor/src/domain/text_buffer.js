@@ -32,7 +32,7 @@ export default class TextBuffer {
     const totalLength = this.#getText().length;
 
     if (position < 0 || position > totalLength) {
-      throw new Error("Position out of bounds");
+      throw new Error("Error: Position out of bounds!");
     }
   }
 
@@ -111,8 +111,54 @@ export default class TextBuffer {
     return position + 1;
   }
 
+  #isBeforeDeleteRange(pieceEnd, deleteStart) {
+    return pieceEnd <= deleteStart;
+  }
+
+  #isAfterDeleteRange(pieceStart, deleteEnd) {
+    return pieceStart >= deleteEnd;
+  }
+
+  #overlapsDeleteRange(pieceStart, pieceEnd, deleteStart, deleteEnd) {
+    return !(
+      this.#isBeforeDeleteRange(pieceEnd, deleteStart) ||
+      this.#isAfterDeleteRange(pieceStart, deleteEnd)
+    );
+  }
+
+  #splitPieceByRange(piece, pieceStart, pieceEnd, deleteStart, deleteEnd) {
+    const fragments = [];
+
+    if (deleteStart > pieceStart) {
+      const before = this.#getPiece(
+        piece.source,
+        piece.start,
+        deleteStart - pieceStart,
+      );
+
+      fragments.push(before);
+    }
+
+    if (pieceEnd > deleteEnd) {
+      const after = this.#getPiece(
+        piece.source,
+        piece.start + (deleteEnd - pieceStart),
+        pieceEnd - deleteEnd,
+      );
+
+      fragments.push(after);
+    }
+
+    return fragments;
+  }
+
   delete(position, length = 1) {
     this.#validatePos(position);
+
+    if (position <= 0) return 0;
+
+    const deleteStart = position - length;
+    const deleteEnd = position;
 
     let currentPos = 0;
     const newPieces = [];
@@ -121,27 +167,32 @@ export default class TextBuffer {
       const pieceStart = currentPos;
       const pieceEnd = currentPos + piece.length;
 
-      const deleteStart = position - length;
-      const deleteEnd = position;
+      if (
+        this.#overlapsDeleteRange(pieceStart, pieceEnd, deleteStart, deleteEnd)
+      ) {
+        newPieces.push(
+          ...this.#splitPieceByRange(
+            piece,
+            pieceStart,
+            pieceEnd,
+            deleteStart,
+            deleteEnd,
+          ),
+        );
+      } else newPieces.push(piece);
 
-      const before = this.#getPiece(
-        piece.source,
-        piece.start,
-        deleteStart - pieceStart,
-      );
+      // const piecesToAdd =
+      //   this.#overlapsDeleteRange(pieceStart, pieceEnd, deleteStart, deleteEnd)
+      //     ? this.#splitPieceByRange(
+      //       piece,
+      //       pieceStart,
+      //       pieceEnd,
+      //       deleteStart,
+      //       deleteEnd,
+      //     )
+      //     : [piece];
 
-      const after = this.#getPiece(
-        piece.source,
-        piece.start + (deleteEnd - pieceStart),
-        pieceEnd - deleteEnd,
-      );
-
-      if (pieceEnd <= deleteStart || pieceStart >= deleteEnd) {
-        newPieces.push(piece);
-      } else {
-        if (deleteStart > pieceStart) newPieces.push(before);
-        if (pieceEnd > deleteEnd) newPieces.push(after);
-      }
+      // newPieces.push(...piecesToAdd);
 
       currentPos = pieceEnd;
     }
