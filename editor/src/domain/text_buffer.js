@@ -181,19 +181,6 @@ export default class TextBuffer {
         );
       } else newPieces.push(piece);
 
-      // const piecesToAdd =
-      //   this.#overlapsDeleteRange(pieceStart, pieceEnd, deleteStart, deleteEnd)
-      //     ? this.#splitPieceByRange(
-      //       piece,
-      //       pieceStart,
-      //       pieceEnd,
-      //       deleteStart,
-      //       deleteEnd,
-      //     )
-      //     : [piece];
-
-      // newPieces.push(...piecesToAdd);
-
       currentPos = pieceEnd;
     }
 
