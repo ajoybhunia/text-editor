@@ -13,10 +13,11 @@ const main = async () => {
 
   try {
     const stat = await Deno.stat(filePath);
+    const ownerWrite = Boolean(stat.mode & 0o200);
 
     if (stat.isFile) {
       const buffer = await getFileBuffer(filePath);
-      await editAndPersist(buffer, filePath);
+      await editAndPersist(buffer, filePath, ownerWrite, stat.mode);
     }
 
     if (stat.isDirectory) {

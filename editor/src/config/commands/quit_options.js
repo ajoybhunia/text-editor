@@ -5,11 +5,13 @@ export const quitOptions = {
   ":wq!": (bytes) => ({
     shouldReturn: true,
     shouldWrite: true,
+    forceWrite: true,
     data: bytes,
   }),
   ":wq": (bytes) => ({
     shouldReturn: true,
     shouldWrite: true,
+    forceWrite: false,
     data: bytes,
   }),
 };
