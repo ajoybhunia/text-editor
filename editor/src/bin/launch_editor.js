@@ -4,33 +4,43 @@ import { Terminal } from "../terminal/terminal.js";
 
 const extractPermission = (mode) => mode & 0o777;
 
-const handleForceWrite = async (mode, filePath, data) => {
-  const permission = extractPermission(mode);
+const forceWriteFile = async (mode, filePath, data) => {
+  const originalPermission = extractPermission(mode);
 
   await Deno.chmod(filePath, 0o600);
   await writeFile(filePath, data);
-  await Deno.chmod(filePath, permission);
+  await Deno.chmod(filePath, originalPermission);
+};
+
+const writeWithPermission = async (
+  { filePath, data, hasWritePermission, forceWrite, mode },
+) => {
+  if (hasWritePermission) return writeFile(filePath, data);
+  if (forceWrite) return forceWriteFile(mode, filePath, data);
+
+  throw new Error(`permission denied: ${filePath}`);
 };
 
 export const editAndPersist = async (
   buffer,
   filePath,
-  hasWritePermision = true,
-  mode = 33188,
+  hasWritePermission = true,
+  mode = 0o100644, // mode: 33188
 ) => {
-  const info = await editFile(buffer);
-  if (info.shouldWrite) {
-    if (hasWritePermision) {
-      await writeFile(filePath, info.data);
-    } else {
-      if (info.forceWrite) {
-        await handleForceWrite(mode, filePath, info.data);
-      } else {
-        await Terminal.clear();
-        console.log(`Error: permission denied: ${filePath}`);
-        return;
-      }
-    }
+  const { shouldWrite, data, forceWrite } = await editFile(buffer);
+
+  if (!shouldWrite) {
+    await Terminal.clear();
+    return;
   }
-  await Terminal.clear();
+
+  try {
+    await writeWithPermission(
+      { filePath, data, hasWritePermission, forceWrite, mode },
+    );
+  } catch (err) {
+    throw err;
+  } finally {
+    await Terminal.clear();
+  }
 };
