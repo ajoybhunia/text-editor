@@ -13,3 +13,8 @@ export const arrowKeyMovementMap = {
   right: "moveRight",
   left: "moveLeft",
 };
+
+export const cliArrowKeyDelta = {
+  right: 1,
+  left: -1,
+};

@@ -6,8 +6,11 @@ import { computeCursorPos } from "../utils/compute_cursor.js";
 import { KEYS } from "../config/keys.js";
 import { MODES } from "../config/modes.js";
 import { quitOptions } from "../config/commands/quit_options.js";
-import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
 import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
+import {
+  arrowKeyMovementMap,
+  cliArrowKeyDelta,
+} from "../config/keymaps.js/arrows.js";
 
 const decoder = new TextDecoder();
 
@@ -181,9 +184,17 @@ export default class Editor {
       await render(cmdBuff.bytes, pos, this.#mode);
       const key = await Terminal.readKey();
 
-      pos = (key === KEYS.BACKSPACE)
-        ? cmdBuff.delete(pos)
-        : cmdBuff.insert(pos, key);
+      const delta = cliArrowKeyDelta[key];
+
+      if (delta === 1) {
+        pos = (pos === cmdBuff.length) ? pos : pos + delta;
+      } else if (delta === -1) {
+        pos = (pos === 1) ? pos : pos + delta;
+      } else if (key === KEYS.BACKSPACE) {
+        pos = cmdBuff.delete(pos);
+      } else if (typeof key === "number") {
+        pos = cmdBuff.insert(pos, key);
+      }
 
       if (key === KEYS.ESC || cmdBuff.length === 0) {
         this.#mode = MODES.NORMAL;
