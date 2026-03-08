@@ -1,16 +1,13 @@
+import { KEYS } from "../config/keys.js";
+import { MODES } from "../config/modes.js";
 import Cursor from "../domain/cursor.js";
 import TextBuffer from "../domain/text_buffer.js";
 import { Terminal } from "../terminal/terminal.js";
 import { render } from "../terminal/terminal_renderer.js";
 import { computeCursorPos } from "../utils/compute_cursor.js";
-import { KEYS } from "../config/keys.js";
-import { MODES } from "../config/modes.js";
-import { quitOptions } from "../config/commands/quit_options.js";
 import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
-import {
-  arrowKeyMovementMap,
-  cliArrowKeyDelta,
-} from "../config/keymaps.js/arrows.js";
+import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
+import { handleCommandLine } from "./command_line.js";
 
 const decoder = new TextDecoder();
 
@@ -177,37 +174,9 @@ export default class Editor {
   }
 
   async #handleCLI() {
-    const cmdBuff = new TextBuffer(":");
-    let pos = cmdBuff.length;
+    const res = await handleCommandLine(this.#mode, this.#buffer.bytes);
+    this.#mode = res.mode;
 
-    while (true) {
-      await render(cmdBuff.bytes, pos, this.#mode);
-      const key = await Terminal.readKey();
-
-      const delta = cliArrowKeyDelta[key];
-
-      if (delta === 1) {
-        pos = (pos === cmdBuff.length) ? pos : pos + delta;
-      } else if (delta === -1) {
-        pos = (pos === 1) ? pos : pos + delta;
-      } else if (key === KEYS.BACKSPACE) {
-        pos = cmdBuff.delete(pos);
-      } else if (typeof key === "number") {
-        pos = cmdBuff.insert(pos, key);
-      }
-
-      if (key === KEYS.ESC || cmdBuff.length === 0) {
-        this.#mode = MODES.NORMAL;
-        return { shouldReturn: false };
-      }
-
-      if (key === KEYS.CR) {
-        const cmd = decoder.decode(cmdBuff.bytes).trim();
-        if (cmd in quitOptions) return quitOptions[cmd](this.#buffer.bytes);
-
-        this.#mode = MODES.NORMAL;
-        return { shouldReturn: false };
-      }
-    }
+    return res.ins;
   }
 }
