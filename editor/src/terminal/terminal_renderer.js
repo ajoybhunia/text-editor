@@ -1,6 +1,6 @@
 import { Terminal } from "./terminal.js";
 import { KEYS } from "../config/keys.js";
-import { computeCursorPos } from "../utils/compute_cursor.js";
+import { computeCursorPos } from "../utils/utility.js";
 
 const encoder = new TextEncoder();
 

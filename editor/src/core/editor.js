@@ -4,10 +4,14 @@ import Cursor from "../domain/cursor.js";
 import TextBuffer from "../domain/text_buffer.js";
 import { Terminal } from "../terminal/terminal.js";
 import { render } from "../terminal/terminal_renderer.js";
-import { computeCursorPos } from "../utils/compute_cursor.js";
 import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
 import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
 import { handleCommandLine } from "./command_line.js";
+import {
+  computeCursorPos,
+  nextLineFeed,
+  prevLineFeed,
+} from "../utils/utility.js";
 
 const decoder = new TextDecoder();
 
@@ -48,22 +52,6 @@ export default class Editor {
     }
   }
 
-  #nextLineFeed() {
-    for (let i = this.#cursor.pos; i < this.#buffer.length; i++) {
-      if (this.#buffer.bytes[i] === KEYS.NEW_LINE) return i;
-    }
-
-    return this.#cursor.pos;
-  }
-
-  #prevLineFeed() {
-    for (let i = this.#cursor.pos; i > 0; i--) {
-      if (this.#buffer.bytes[i - 1] === KEYS.NEW_LINE) return i;
-    }
-
-    return 0;
-  }
-
   #deleteTextSpan(position, length) {
     this.#cursor.pos = this.#buffer.delete(position, length);
     this.#cursor.updatePrevCol(this.#buffer.bytes);
@@ -74,23 +62,23 @@ export default class Editor {
   async #handleDeleteLine(motion) {
     if (motion === KEYS["0"]) {
       const lengthToDelete = this.#cursor.pos -
-        this.#prevLineFeed(this.#cursor.pos);
+        prevLineFeed(this.#cursor.pos, this.#buffer.bytes);
       return this.#deleteTextSpan(this.#cursor.pos, lengthToDelete);
     }
 
     if (motion === KEYS.$) {
-      const nextLineFeed = this.#nextLineFeed();
-      const lengthToDelete = nextLineFeed - this.#cursor.pos;
-      return this.#deleteTextSpan(nextLineFeed, lengthToDelete);
+      const nextLF = nextLineFeed(this.#cursor.pos, this.#buffer.bytes);
+      const lengthToDelete = nextLF - this.#cursor.pos;
+      return this.#deleteTextSpan(nextLF, lengthToDelete);
     }
 
     if (motion === KEYS.d) {
-      const nextLineFeed = this.#nextLineFeed();
-      const prevLineFeed = this.#prevLineFeed();
+      const nextLF = nextLineFeed(this.#cursor.pos, this.#buffer.bytes);
+      const prevLF = prevLineFeed(this.#cursor.pos, this.#buffer.bytes);
 
       const [next, lengthToDelete] = this.#cursor.pos === this.#buffer.length
-        ? [this.#cursor.pos, this.#cursor.pos - prevLineFeed + 1]
-        : [nextLineFeed + 1, nextLineFeed - prevLineFeed + 1];
+        ? [this.#cursor.pos, this.#cursor.pos - prevLF + 1]
+        : [nextLF + 1, nextLF - prevLF + 1];
 
       return this.#deleteTextSpan(next, lengthToDelete);
     }
@@ -152,7 +140,7 @@ export default class Editor {
 
     if (col === 1 && row !== 1) return this.#cursor.pos - 1;
 
-    return this.#prevLineFeed();
+    return prevLineFeed(this.#cursor.pos, this.#buffer.bytes);
   }
 
   async #handleInsert() {
