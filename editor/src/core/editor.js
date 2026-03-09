@@ -7,11 +7,7 @@ import { render } from "../terminal/terminal_renderer.js";
 import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
 import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
 import { handleCommandLine } from "./command_line.js";
-import {
-  computeCursorPos,
-  nextLineFeed,
-  prevLineFeed,
-} from "../utils/utility.js";
+import { NAKPos, nextLineFeed, prevLineFeed } from "../utils/utility.js";
 
 const decoder = new TextDecoder();
 
@@ -32,7 +28,7 @@ export default class Editor {
       [KEYS.NAK]: () =>
         this.#buffer.delete(
           this.#cursor.pos,
-          this.#cursor.pos - this.#NAKPos(),
+          this.#cursor.pos - NAKPos(this.#cursor.pos, this.#buffer.bytes),
         ),
     };
   }
@@ -130,17 +126,6 @@ export default class Editor {
     }
 
     return { shouldReturn: false };
-  }
-
-  #NAKPos() {
-    const { row, col } = computeCursorPos(
-      this.#buffer.bytes,
-      this.#cursor.pos,
-    );
-
-    if (col === 1 && row !== 1) return this.#cursor.pos - 1;
-
-    return prevLineFeed(this.#cursor.pos, this.#buffer.bytes);
   }
 
   async #handleInsert() {

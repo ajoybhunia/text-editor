@@ -1,10 +1,10 @@
 import { KEYS } from "../config/keys.js";
 
-export const computeCursorPos = (bytes, pos) => {
+export const computeCursorPos = (buffer, pos) => {
   let row = 1, col = 1;
 
   for (let i = 0; i < pos; i++) {
-    bytes[i] === KEYS.NEW_LINE ? (row++, col = 1) : col++;
+    buffer[i] === KEYS.NEW_LINE ? (row++, col = 1) : col++;
   }
 
   return { row, col };
@@ -24,4 +24,12 @@ export const prevLineFeed = (pos, buffer) => {
   }
 
   return 0;
+};
+
+export const NAKPos = (pos, buffer) => {
+  const { row, col } = computeCursorPos(buffer, pos);
+
+  if (col === 1 && row !== 1) return pos - 1;
+
+  return prevLineFeed(pos, buffer);
 };
