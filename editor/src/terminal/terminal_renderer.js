@@ -1,23 +1,37 @@
 import { Terminal } from "./terminal.js";
-import { KEYS } from "../config/keys.js";
 import { computeCursorPos } from "../utils/utility.js";
 
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
-const placeCursor = async (bytes, pos) => {
+const status = (mode) => `\x1b[7m --${mode}-- \x1b[0m`;
+
+const drawStatus = async (mode, rows) => {
+  await Terminal.placeCursor(rows, 1);
+  await Terminal.write(encoder.encode(status(mode)));
+};
+
+const placeTheCursor = async (bytes, pos, viewportTop) => {
   const { row, col } = computeCursorPos(bytes, pos);
-  await Terminal.placeCursor(row, col);
+  const screenRow = row - viewportTop;
+
+  await Terminal.placeCursor(screenRow, col);
 };
 
-const drawStatus = async (mode) => {
-  await Terminal.write(
-    new Uint8Array([KEYS.NEW_LINE, KEYS.NEW_LINE, ...encoder.encode(mode)]),
-  );
+const viewportText = (rows, bytes, viewportTop) => {
+  const contentRows = rows - 1;
+  const text = decoder.decode(bytes);
+  const lines = text.split("\n");
+
+  return lines.slice(viewportTop, viewportTop + contentRows);
 };
 
-export const render = async (bytes, pos, mode) => {
+export const render = async (bytes, pos, mode, viewportTop) => {
+  const { rows } = Deno.consoleSize();
+  const visibleContent = viewportText(rows, bytes, viewportTop);
+
   await Terminal.clear();
-  await Terminal.write(bytes);
-  await drawStatus(mode);
-  await placeCursor(bytes, pos);
+  await Terminal.write(encoder.encode(visibleContent.join("\n")));
+  await drawStatus(mode, rows);
+  await placeTheCursor(bytes, pos, viewportTop);
 };

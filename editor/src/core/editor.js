@@ -16,11 +16,13 @@ export default class Editor {
   #cursor;
   #mode;
   #insertByteMap;
+  #viewportTop;
 
   constructor(bytes) {
     this.#buffer = new TextBuffer(decoder.decode(bytes));
     this.#cursor = new Cursor();
     this.#mode = MODES.NORMAL;
+    this.#viewportTop = 0;
 
     this.#insertByteMap = {
       [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos, 1),
@@ -37,7 +39,12 @@ export default class Editor {
     Deno.stdin.setRaw(true);
 
     while (true) {
-      await render(this.#buffer.bytes, this.#cursor.pos, this.#mode);
+      await render(
+        this.#buffer.bytes,
+        this.#cursor.pos,
+        this.#mode,
+        this.#viewportTop,
+      );
       const key = await Terminal.readKey();
       const info = await this.#handleNormal(key);
 
@@ -45,6 +52,17 @@ export default class Editor {
         Deno.stdin.setRaw(false);
         return info;
       }
+    }
+  }
+
+  #updateViewport() {
+    const { rows } = Deno.consoleSize();
+    const cursorRow = this.#cursor.getRow(this.#buffer.bytes);
+
+    if (cursorRow < this.#viewportTop) this.#viewportTop = cursorRow;
+
+    if (cursorRow >= this.#viewportTop + rows - 1) {
+      this.#viewportTop = cursorRow - (rows - 2);
     }
   }
 
@@ -123,6 +141,7 @@ export default class Editor {
     const mapper = normalModeMovementMap[key] || arrowKeyMovementMap[key];
     if (mapper !== undefined) {
       this.#cursor[mapper](this.#buffer.bytes);
+      this.#updateViewport();
     }
 
     return { shouldReturn: false };
@@ -130,7 +149,12 @@ export default class Editor {
 
   async #handleInsert() {
     while (true) {
-      await render(this.#buffer.bytes, this.#cursor.pos, this.#mode);
+      await render(
+        this.#buffer.bytes,
+        this.#cursor.pos,
+        this.#mode,
+        this.#viewportTop,
+      );
       const key = await Terminal.readKey();
 
       if (key === KEYS.ESC) {
@@ -138,16 +162,23 @@ export default class Editor {
         return { shouldReturn: false };
       } else if (key in arrowKeyMovementMap) {
         this.#cursor[arrowKeyMovementMap[key]](this.#buffer.bytes);
+        this.#updateViewport();
       } else if (key in this.#insertByteMap) {
         this.#cursor.pos = this.#insertByteMap[key]();
+        this.#updateViewport();
       } else if (typeof key === "number") {
         this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
+        this.#updateViewport();
       }
     }
   }
 
   async #handleCLI() {
-    const res = await handleCommandLine(this.#mode, this.#buffer.bytes);
+    const res = await handleCommandLine(
+      this.#mode,
+      this.#buffer.bytes,
+      this.#viewportTop,
+    );
     this.#mode = res.mode;
 
     return res.ins;

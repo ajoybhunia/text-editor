@@ -6,6 +6,16 @@ export default class Cursor {
     this.prevCol = this.pos;
   }
 
+  getRow(buffer) {
+    let row = 0;
+
+    for (let index = 0; index < this.pos; index++) {
+      if (buffer[index] === KEYS.NEW_LINE) row++;
+    }
+
+    return row;
+  }
+
   updatePrevCol(buffer) {
     this.prevCol = this.#column(buffer);
   }

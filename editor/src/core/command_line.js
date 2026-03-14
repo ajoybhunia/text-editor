@@ -3,18 +3,17 @@ import { MODES } from "../config/modes.js";
 import { render } from "../terminal/terminal_renderer.js";
 import { cliArrowKeyDelta } from "../config/keymaps.js/arrows.js";
 import { quitOptions } from "../config/commands/quit_options.js";
-import { TextDecoder } from "node:util";
 import { Terminal } from "../terminal/terminal.js";
 import TextBuffer from "../domain/text_buffer.js";
 
 const decoder = new TextDecoder();
 
-export const handleCommandLine = async (mode, buffer) => {
+export const handleCommandLine = async (mode, buffer, viewportTop) => {
   const cmdBuff = new TextBuffer(":");
   let pos = cmdBuff.length;
 
   while (true) {
-    await render(cmdBuff.bytes, pos, mode);
+    await render(cmdBuff.bytes, pos, mode, viewportTop);
     const key = await Terminal.readKey();
 
     const delta = cliArrowKeyDelta[key];
