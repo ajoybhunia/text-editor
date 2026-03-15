@@ -8,7 +8,7 @@ import TextBuffer from "../domain/text_buffer.js";
 
 const decoder = new TextDecoder();
 
-export const handleCommandLine = async (mode, buffer, viewportTop) => {
+export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
   const cmdBuff = new TextBuffer(":");
   let pos = cmdBuff.length;
 

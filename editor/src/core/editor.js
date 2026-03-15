@@ -104,17 +104,18 @@ export default class Editor {
     if (key === KEYS[":"]) { // : -> CLI
       const _pos = this.#buffer.undo();
       this.#mode = MODES.CLI;
+
       return await this.#handleCLI();
     }
 
-    if (key === KEYS.i) { // i -> insert
+    if (key === KEYS.i || key === KEYS.I) { // i -> insert
       this.#mode = MODES.INSERT;
       return await this.#handleInsert();
     }
   }
 
   async #handleNormal(key) {
-    if (key === KEYS.i || key === KEYS[":"]) {
+    if (key === KEYS.i || key === KEYS.I || key === KEYS[":"]) {
       this.#buffer.save(this.#cursor.pos);
       return this.#handleModes(key);
     }
@@ -122,9 +123,7 @@ export default class Editor {
     if (key === KEYS.u) { // u -> undo
       const cursorPosition = this.#buffer.undo();
 
-      if (cursorPosition !== null) {
-        this.#cursor.pos = cursorPosition;
-      }
+      if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 
       return { shouldReturn: false };
     }
@@ -174,11 +173,7 @@ export default class Editor {
   }
 
   async #handleCLI() {
-    const res = await handleCommandLine(
-      this.#mode,
-      this.#buffer.bytes,
-      this.#viewportTop,
-    );
+    const res = await handleCommandLine(this.#mode, this.#buffer.bytes);
     this.#mode = res.mode;
 
     return res.ins;
