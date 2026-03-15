@@ -8,6 +8,7 @@ import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
 import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
 import { handleCommandLine } from "./command_line.js";
 import { NAKPos, nextLineFeed, prevLineFeed } from "../utils/utility.js";
+import { writeFileWithPermission } from "../fs/write_with_permission.js";
 
 const decoder = new TextDecoder();
 
@@ -35,7 +36,7 @@ export default class Editor {
     };
   }
 
-  async run() {
+  async run(filePath, hasWritePermission, mode) {
     Deno.stdin.setRaw(true);
 
     while (true) {
@@ -46,11 +47,15 @@ export default class Editor {
         this.#viewportTop,
       );
       const key = await Terminal.readKey();
-      const info = await this.#handleNormal(key);
+      const ctx = await this.#handleNormal(key);
 
-      if (info.shouldReturn) {
+      if (ctx.shouldWrite) {
+        await writeFileWithPermission(ctx, filePath, hasWritePermission, mode);
+      }
+
+      if (ctx.shouldReturn) {
         Deno.stdin.setRaw(false);
-        return info;
+        return;
       }
     }
   }
@@ -176,6 +181,6 @@ export default class Editor {
     const res = await handleCommandLine(this.#mode, this.#buffer.bytes);
     this.#mode = res.mode;
 
-    return res.ins;
+    return res.ctx;
   }
 }

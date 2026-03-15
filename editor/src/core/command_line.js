@@ -29,14 +29,17 @@ export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
     }
 
     if (key === KEYS.ESC || cmdBuff.length === 0) {
-      return { mode: MODES.NORMAL, ins: { shouldReturn: false } };
+      return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
     }
 
     if (key === KEYS.CR) {
       const cmd = decoder.decode(cmdBuff.bytes).trim();
-      if (cmd in quitOptions) return { mode, ins: quitOptions[cmd](buffer) };
 
-      return { mode: MODES.NORMAL, ins: { shouldReturn: false } };
+      if (cmd in quitOptions) {
+        return { mode: MODES.NORMAL, ctx: quitOptions[cmd](buffer) };
+      }
+
+      return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
     }
   }
 };

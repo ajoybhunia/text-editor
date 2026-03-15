@@ -1,27 +1,22 @@
 #! /usr/bin/env -S deno run --allow-read --allow-write
 
-import { getFileBuffer } from "./src/utils/fs_utils.js";
 import { editAndPersist } from "./src/bin/launch_editor.js";
+import { readFile } from "./src/fs/read_file.js";
 
 const main = async () => {
   const filePath = Deno.args[0];
 
-  if (!filePath) {
-    console.log("Usage: ted <file>");
-    return;
-  }
+  if (!filePath) throw new Error("Usage: ted <file>");
 
   try {
     const stat = await Deno.stat(filePath);
     const ownerWrite = Boolean(stat.mode & 0o200);
 
-    if (stat.isFile) {
-      const buffer = await getFileBuffer(filePath);
-      await editAndPersist(buffer, filePath, ownerWrite, stat.mode);
-    }
+    if (stat.isDirectory) throw new Error("Oops! Failed to open a directory!");
 
-    if (stat.isDirectory) {
-      console.log("Oops! Failed to open a directory!");
+    if (stat.isFile) {
+      const buffer = await readFile(filePath);
+      await editAndPersist(buffer, filePath, ownerWrite, stat.mode);
     }
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
