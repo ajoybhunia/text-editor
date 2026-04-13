@@ -1,4 +1,4 @@
-import { Terminal } from "./terminal.js";
+import Terminal from "./terminal.js";
 import { computeCursorPos } from "../utils/utility.js";
 
 const encoder = new TextEncoder();

@@ -6,9 +6,9 @@ import { readFile } from "./src/fs/read_file.js";
 const main = async () => {
   const filePath = Deno.args[0];
 
-  if (!filePath) throw new Error("Usage: ted <file>");
-
   try {
+    if (!filePath) throw new Error("Usage: ted <file>");
+
     const stat = await Deno.stat(filePath);
     const ownerWrite = Boolean(stat.mode & 0o200);
 

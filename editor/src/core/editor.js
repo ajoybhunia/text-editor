@@ -2,15 +2,13 @@ import { KEYS } from "../config/keys.js";
 import { MODES } from "../config/modes.js";
 import Cursor from "../domain/cursor.js";
 import TextBuffer from "../domain/text_buffer.js";
-import { Terminal } from "../terminal/terminal.js";
+import Terminal from "../terminal/terminal.js";
 import { render } from "../terminal/terminal_renderer.js";
-import { normalModeMovementMap } from "../config/keymaps.js/normal.js";
-import { arrowKeyMovementMap } from "../config/keymaps.js/arrows.js";
+import { normalModeMovementMap } from "../config/key-maps/normal.js";
+import { arrowKeyMovementMap } from "../config/key-maps/arrows.js";
 import { handleCommandLine } from "./command_line.js";
 import { NAKPos, nextLineFeed, prevLineFeed } from "../utils/utility.js";
 import { writeFileWithPermission } from "../fs/write_with_permission.js";
-
-const decoder = new TextDecoder();
 
 export default class Editor {
   #buffer;
@@ -19,9 +17,9 @@ export default class Editor {
   #insertByteMap;
   #viewportTop;
 
-  constructor(bytes) {
-    this.#buffer = new TextBuffer(decoder.decode(bytes));
-    this.#cursor = new Cursor();
+  constructor(buffer, cursor) {
+    this.#buffer = buffer;
+    this.#cursor = cursor;
     this.#mode = MODES.NORMAL;
     this.#viewportTop = 0;
 

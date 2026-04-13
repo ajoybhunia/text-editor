@@ -1,23 +1,23 @@
-import { cursorNavigationMap } from "../config/keymaps.js/arrows.js";
+import { cursorNavigationMap } from "../config/key-maps/arrows.js";
 import { KEYS } from "../config/keys.js";
 
 const encoder = new TextEncoder();
 const CLEAR = "\x1b[2J\x1b[H";
 
-export const Terminal = {
-  async write(bytes) {
+export default class Terminal {
+  static async write(bytes) {
     await Deno.stdout.write(bytes);
-  },
+  }
 
-  async clear() {
+  static async clear() {
     await Deno.stdout.write(encoder.encode(CLEAR));
-  },
+  }
 
-  async placeCursor(row, col) {
+  static async placeCursor(row, col) {
     await this.write(encoder.encode(`\x1b[${row};${col}H`));
-  },
+  }
 
-  async readKey() {
+  static async readKey() {
     const buf = new Uint8Array(3);
     const n = await Deno.stdin.read(buf);
 
@@ -27,5 +27,5 @@ export const Terminal = {
     }
 
     return buf[0];
-  },
-};
+  }
+}

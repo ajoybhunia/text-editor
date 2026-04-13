@@ -1,9 +1,9 @@
 import { KEYS } from "../config/keys.js";
 import { MODES } from "../config/modes.js";
 import { render } from "../terminal/terminal_renderer.js";
-import { cliArrowKeyDelta } from "../config/keymaps.js/arrows.js";
+import { cliArrowKeyDelta } from "../config/key-maps/arrows.js";
 import { quitOptions } from "../config/commands/quit_options.js";
-import { Terminal } from "../terminal/terminal.js";
+import Terminal from "../terminal/terminal.js";
 import TextBuffer from "../domain/text_buffer.js";
 
 const decoder = new TextDecoder();

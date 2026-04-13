@@ -1,13 +1,20 @@
 import Editor from "../core/editor.js";
-import { Terminal } from "../terminal/terminal.js";
+import Cursor from "../domain/cursor.js";
+import TextBuffer from "../domain/text_buffer.js";
+import Terminal from "../terminal/terminal.js";
+
+const decoder = new TextDecoder();
 
 export const editAndPersist = async (
-  buffer,
+  fileContent,
   filePath,
   hasWritePermission = true,
   mode = 0o100644, // mode: 33188
 ) => {
-  const editor = new Editor(buffer);
+  const buffer = new TextBuffer(decoder.decode(fileContent));
+  const cursor = new Cursor();
+
+  const editor = new Editor(buffer, cursor);
 
   try {
     await editor.run(filePath, hasWritePermission, mode);
