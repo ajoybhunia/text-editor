@@ -1,7 +1,5 @@
 import { KEYS } from "../config/keys.js";
 import { MODES } from "../config/modes.js";
-import Cursor from "../domain/cursor.js";
-import TextBuffer from "../domain/text_buffer.js";
 import Terminal from "../terminal/terminal.js";
 import { render } from "../terminal/terminal_renderer.js";
 import { normalModeMovementMap } from "../config/key-maps/normal.js";
