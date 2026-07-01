@@ -7,4 +7,6 @@ export const normalModeMovementMap = {
   [KEYS.k]: "moveUp",
   [KEYS["0"]]: "moveToFirst",
   [KEYS.$]: "moveToLast",
+  [KEYS.w]: "moveToNextWord",
+  [KEYS.b]: "moveToPreviousWord",
 };
