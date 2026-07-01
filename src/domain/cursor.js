@@ -60,6 +60,28 @@ export default class Cursor {
     this.prevCol = this.#column(buffer);
   }
 
+  moveToNextWord(buffer) {
+    const nextPos = buffer.indexOf(KEYS.SPACE, this.pos) + 1;
+    this.pos = nextPos < this.pos ? this.pos : nextPos;
+
+    while (buffer[this.pos] === KEYS.SPACE) {
+      this.pos = buffer.indexOf(KEYS.SPACE, this.pos) + 1;
+    }
+
+    this.prevCol = this.#column(buffer);
+  }
+
+  moveToPreviousWord(buffer) {
+    const prevPos = buffer.lastIndexOf(KEYS.SPACE, this.pos - 2) + 1;
+    this.pos = prevPos > this.pos ? this.pos : prevPos;
+
+    while (buffer[this.pos] === KEYS.SPACE) {
+      this.pos = buffer.lastIndexOf(KEYS.SPACE, this.pos - 2) + 1;
+    }
+
+    this.prevCol = this.#column(buffer);
+  }
+
   moveDown(buffer) {
     const col = this.#column(buffer);
     const end = this.#lineEnd(buffer);
