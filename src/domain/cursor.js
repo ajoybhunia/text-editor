@@ -32,6 +32,10 @@ export default class Cursor {
     return p;
   }
 
+  #isWhitespace(char) {
+    return char === KEYS.SPACE || char === KEYS.TAB || char === KEYS.NEW_LINE;
+  }
+
   #column(buffer) {
     return this.pos - this.#lineStart(buffer);
   }
@@ -61,24 +65,33 @@ export default class Cursor {
   }
 
   moveToNextWord(buffer) {
-    const nextPos = buffer.indexOf(KEYS.SPACE, this.pos) + 1;
-    this.pos = nextPos < this.pos ? this.pos : nextPos;
+    const len = buffer.length;
+    if (this.pos >= len) return;
 
-    while (buffer[this.pos] === KEYS.SPACE) {
-      this.pos = buffer.indexOf(KEYS.SPACE, this.pos) + 1;
+    while (this.pos < len && !this.#isWhitespace(buffer[this.pos])) {
+      this.pos++;
+    }
+
+    while (this.pos < len && this.#isWhitespace(buffer[this.pos])) {
+      this.pos++;
     }
 
     this.prevCol = this.#column(buffer);
   }
 
   moveToPreviousWord(buffer) {
-    const prevPos = buffer.lastIndexOf(KEYS.SPACE, this.pos - 2) + 1;
-    this.pos = prevPos > this.pos ? this.pos : prevPos;
+    if (this.pos <= 0) return;
 
-    while (buffer[this.pos] === KEYS.SPACE) {
-      this.pos = buffer.lastIndexOf(KEYS.SPACE, this.pos - 2) + 1;
+    let p = this.pos - 1;
+    while (p > 0 && this.#isWhitespace(buffer[p])) {
+      p--;
     }
 
+    while (p > 0 && !this.#isWhitespace(buffer[p - 1])) {
+      p--;
+    }
+
+    this.pos = p;
     this.prevCol = this.#column(buffer);
   }
 
