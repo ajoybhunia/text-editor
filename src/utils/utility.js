@@ -1,10 +1,17 @@
 import { KEYS } from "../config/keys.js";
 
-export const computeCursorPos = (buffer, pos) => {
+export const computeCursorPos = (buffer, pos, tabStop = 4) => {
   let row = 1, col = 1;
 
   for (let i = 0; i < pos; i++) {
-    buffer[i] === KEYS.NEW_LINE ? (row++, col = 1) : col++;
+    if (buffer[i] === KEYS.NEW_LINE) {
+      row++;
+      col = 1;
+    } else if (buffer[i] === KEYS.TAB) {
+      col += tabStop - ((col - 1) % tabStop);
+    } else {
+      col++;
+    }
   }
 
   return { row, col };

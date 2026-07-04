@@ -4,6 +4,26 @@ import { computeCursorPos } from "../utils/utility.js";
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
+const TAB_STOP = 4;
+
+const expandTabs = (line) => {
+  let result = "";
+  let col = 0;
+
+  for (const char of line) {
+    if (char === "\t") {
+      const spaces = TAB_STOP - (col % TAB_STOP);
+      result += " ".repeat(spaces);
+      col += spaces;
+    } else {
+      result += char;
+      col++;
+    }
+  }
+
+  return result;
+};
+
 const status = (mode) => `\x1b[7m --${mode}-- \x1b[0m`;
 
 const drawStatus = async (mode, rows) => {
@@ -23,7 +43,7 @@ const viewportText = (rows, bytes, viewportTop) => {
   const text = decoder.decode(bytes);
   const lines = text.split("\n");
 
-  return lines.slice(viewportTop, viewportTop + contentRows);
+  return lines.slice(viewportTop, viewportTop + contentRows).map(expandTabs);
 };
 
 export const render = async (bytes, pos, mode, viewportTop) => {
