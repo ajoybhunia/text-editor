@@ -1,6 +1,6 @@
 import { KEYS } from "../config/keys.js";
 
-export const computeCursorPos = (buffer, pos, tabStop = 4) => {
+export const computeCursorPos = (buffer, pos, tabStop) => {
   let row = 1, col = 1;
 
   for (let i = 0; i < pos; i++) {
@@ -8,7 +8,7 @@ export const computeCursorPos = (buffer, pos, tabStop = 4) => {
       row++;
       col = 1;
     } else if (buffer[i] === KEYS.TAB) {
-      col += tabStop - ((col - 1) % tabStop);
+      col += tabStop;
     } else {
       col++;
     }

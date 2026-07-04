@@ -12,9 +12,8 @@ const expandTabs = (line) => {
 
   for (const char of line) {
     if (char === "\t") {
-      const spaces = TAB_STOP - (col % TAB_STOP);
-      result += " ".repeat(spaces);
-      col += spaces;
+      result += " ".repeat(TAB_STOP);
+      col += TAB_STOP;
     } else {
       result += char;
       col++;
@@ -32,7 +31,7 @@ const drawStatus = async (mode, rows) => {
 };
 
 const placeTheCursor = async (bytes, pos, viewportTop) => {
-  const { row, col } = computeCursorPos(bytes, pos);
+  const { row, col } = computeCursorPos(bytes, pos, TAB_STOP);
   const screenRow = row - viewportTop;
 
   await Terminal.placeCursor(screenRow, col);
