@@ -1,5 +1,6 @@
 import Terminal from "./terminal.js";
 import { computeCursorPos } from "../utils/utility.js";
+import { MODES } from "../config/modes.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -23,11 +24,14 @@ const expandTabs = (line) => {
   return result;
 };
 
-const status = (mode) => `\x1b[7m --${mode}-- \x1b[0m`;
+const status = (text) => `\x1b[7m --${text}-- \x1b[0m`;
 
-const drawStatus = async (mode, rows) => {
+const drawStatus = async (statusText, rows, activeMode) => {
   await Terminal.placeCursor(rows, 1);
-  await Terminal.write(encoder.encode(status(mode)));
+  const decoratedStatus = activeMode && (activeMode === MODES.CLI)
+  ? statusText
+  : status(statusText);
+  await Terminal.write(encoder.encode(decoratedStatus));
 };
 
 const placeTheCursor = async (bytes, pos, viewportTop) => {
@@ -45,12 +49,15 @@ const viewportText = (rows, bytes, viewportTop) => {
   return lines.slice(viewportTop, viewportTop + contentRows).map(expandTabs);
 };
 
-export const render = async (bytes, pos, mode, viewportTop) => {
+export const render = async (bytes, pos, statusText, viewportTop, activeMode) => {
   const { rows } = Deno.consoleSize();
   const visibleContent = viewportText(rows, bytes, viewportTop);
 
   await Terminal.clear();
   await Terminal.write(encoder.encode(visibleContent.join("\n")));
-  await drawStatus(mode, rows);
-  await placeTheCursor(bytes, pos, viewportTop);
+  await drawStatus(statusText, rows, activeMode);
+
+  (MODES.CLI !== activeMode)
+  ? await placeTheCursor(bytes, pos, viewportTop)
+  : await Terminal.placeCursor(rows, pos);
 };

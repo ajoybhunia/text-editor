@@ -1,8 +1,8 @@
 import { KEYS } from "../config/keys.js";
 
 export default class Cursor {
-  constructor() {
-    this.pos = 0;
+  constructor(pos = 0) {
+    this.pos = pos;
     this.prevCol = this.pos;
   }
 

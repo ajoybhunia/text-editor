@@ -5,27 +5,30 @@ import { cliArrowKeyDelta } from "../config/key-maps/arrows.js";
 import { quitOptions } from "../config/commands/quit_options.js";
 import Terminal from "../terminal/terminal.js";
 import TextBuffer from "../domain/text_buffer.js";
+import Cursor from "../domain/cursor.js";
 
 const decoder = new TextDecoder();
 
-export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
+export const handleCommandLine = async (mode, buffer, viewportTop) => {
   const cmdBuff = new TextBuffer(":");
-  let pos = cmdBuff.length;
+  const cursor = new Cursor(1);
 
   while (true) {
-    await render(cmdBuff.bytes, pos, mode, viewportTop);
-    const key = await Terminal.readKey();
+    const decoded = decoder.decode(cmdBuff.bytes);
+    await render(buffer, cursor.pos + 1, decoded, viewportTop, mode);
 
+    const key = await Terminal.readKey();
     const delta = cliArrowKeyDelta[key];
 
+
     if (delta === 1) {
-      pos = (pos === cmdBuff.length) ? pos : pos + delta;
+      cursor.pos = (cursor.pos === cmdBuff.length) ? cursor.pos : cursor.pos + delta;
     } else if (delta === -1) {
-      pos = (pos === 1) ? pos : pos + delta;
-    } else if (key === KEYS.BACKSPACE) {
-      pos = cmdBuff.delete(pos);
+      cursor.pos = (cursor.pos === 1) ? cursor.pos : cursor.pos + delta;
+    } else if ((key === KEYS.BACKSPACE) && (cursor.pos !== 1 || cmdBuff.length === 1)) {
+      cursor.pos = cmdBuff.delete(cursor.pos);
     } else if (typeof key === "number") {
-      pos = cmdBuff.insert(pos, key);
+      cursor.pos = cmdBuff.insert(cursor.pos, key);
     }
 
     if (key === KEYS.ESC || cmdBuff.length === 0) {

@@ -174,7 +174,7 @@ export default class Editor {
   }
 
   async #handleCLI() {
-    const res = await handleCommandLine(this.#mode, this.#buffer.bytes);
+    const res = await handleCommandLine(this.#mode, this.#buffer.bytes, this.#viewportTop);
     this.#mode = res.mode;
 
     return res.ctx;
