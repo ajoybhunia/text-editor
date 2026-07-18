@@ -5,7 +5,8 @@ export default class TextBuffer {
   #original;
   #add;
   #pieces;
-  #records;
+  #undoRecords;
+  #redoRecords;
 
   constructor(buffer) {
     this.#original = buffer;
@@ -14,7 +15,8 @@ export default class TextBuffer {
       { source: this.#original, start: 0, length: this.#original.length },
     ];
     this.bytes = encoder.encode(this.#getText());
-    this.#records = [];
+    this.#undoRecords = [];
+    this.#redoRecords = [];
   }
 
   get length() {
@@ -53,20 +55,30 @@ export default class TextBuffer {
   }
 
   save(cursorPos) {
-    this.#records.push({
+    this.#undoRecords.push({
       pieces: this.#pieces.map((p) => ({ ...p })),
       cursorPos,
     });
   }
 
-  undo() {
-    if (this.#records.length === 0) return null;
+  #restoreHistoryState(source, destination) {
+    if (source.length === 0) return null;
 
-    const currentContent = this.#records.pop();
-    this.#pieces = currentContent.pieces;
+    const state = source.pop();
+    destination.push(state);
+
+    this.#pieces = state.pieces;
     this.bytes = encoder.encode(this.#getText());
 
-    return currentContent.cursorPos;
+    return state.cursorPos;
+  }
+
+  undo() {
+    return this.#restoreHistoryState(this.#undoRecords, this.#redoRecords);
+  }
+
+  redo() {
+    return this.#restoreHistoryState(this.#redoRecords, this.#undoRecords);
   }
 
   #getPiece(source, start, length) {

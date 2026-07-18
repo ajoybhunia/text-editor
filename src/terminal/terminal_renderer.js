@@ -57,7 +57,7 @@ export const render = async (bytes, pos, statusText, viewportTop, activeMode) =>
   await Terminal.write(encoder.encode(visibleContent.join("\n")));
   await drawStatus(statusText, rows, activeMode);
 
-  (MODES.CLI !== activeMode)
-  ? await placeTheCursor(bytes, pos, viewportTop)
-  : await Terminal.placeCursor(rows, pos);
+  (MODES.CLI === activeMode)
+  ? await Terminal.placeCursor(rows, pos)
+  : await placeTheCursor(bytes, pos, viewportTop);
 };

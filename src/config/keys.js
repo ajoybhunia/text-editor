@@ -1,38 +1,42 @@
-// export const KEYS = {
-//   ESC: 0x1b,
-//   BACKSPACE: 0x7f,
-//   CR: 0x0d,
-//   NEW_LINE: 0x0a,
-//   NAK: 0x15,
-//   d: 0x64,
-//   h: 0x68,
-//   i: 0x69,
-//   I: 0x49,
-//   j: 0x6a,
-//   k: 0x6b,
-//   l: 0x6c,
-//   u: 0x75,
-//   ":": 0x3a,
-//   "[": 0x5b,
-//   A: 0x41,
-//   B: 0x42,
-//   C: 0x43,
-//   D: 0x44,
-//   0: 0x30,
-//   $: 0x24,
-// };
-
-
 export const KEYS = {
-  // Control characters
+  SPACE: 0x20,
+  DELETE: 0x7f,
+  
+  // C0 control codes
   NUL: 0x00,
   TAB: 0x09,
   NEW_LINE: 0x0a, // LF
-  CR: 0x0d,       // Enter / Carriage Return
-  ESC: 0x1b,
-  SPACE: 0x20,
-  BACKSPACE: 0x7f,
-  NAK: 0x15, // Ctrl+U
+  SOH: 0x01, // Ctrl+A (Start of Heading)
+  STX: 0x02, // Ctrl+B (Start of Text)
+  ETX: 0x03, // Ctrl+C (End of Text)
+  EOT: 0x04, // Ctrl+D (End of Transmission)
+  ENQ: 0x05, // Ctrl+E (Enquiry)
+  ACK: 0x06, // Ctrl+F (Acknowledge)
+  BEL: 0x07, // Ctrl+G (Bell)
+  BS:  0x08, // Ctrl+H (Backspace)
+  HT:  0x09, // Ctrl+I (Horizontal Tab)
+  LF:  0x0A, // Ctrl+J (Line Feed)
+  VT:  0x0B, // Ctrl+K (Vertical Tab)
+  FF:  0x0C, // Ctrl+L (Form Feed)
+  CR:  0x0D, // Ctrl+M (Carriage Return) / Enter
+  SO:  0x0E, // Ctrl+N (Shift Out)
+  SI:  0x0F, // Ctrl+O (Shift In)
+  DLE: 0x10, // Ctrl+P (Data Link Escape)
+  DC1: 0x11, // Ctrl+Q (Device Control 1 / XON)
+  DC2: 0x12, // Ctrl+R (Device Control 2)
+  DC3: 0x13, // Ctrl+S (Device Control 3 / XOFF)
+  DC4: 0x14, // Ctrl+T (Device Control 4)
+  NAK: 0x15, // Ctrl+U (Negative Acknowledge)
+  SYN: 0x16, // Ctrl+V (Synchronous Idle)
+  ETB: 0x17, // Ctrl+W (End of Transmission Block)
+  CAN: 0x18, // Ctrl+X (Cancel)
+  EM:  0x19, // Ctrl+Y (End of Medium)
+  SUB: 0x1A, // Ctrl+Z (Substitute)
+  ESC: 0x1B, // Ctrl+[ (Escape)
+  FS:  0x1C, // Ctrl+\ (File Separator)
+  GS:  0x1D, // Ctrl+] (Group Separator)
+  RS:  0x1E, // Ctrl+^ (Record Separator)
+  US:  0x1F, // Ctrl+_ (Unit Separator)
 
   // Digits
   "0": 0x30,

@@ -22,7 +22,7 @@ export default class Editor {
     this.#viewportTop = 0;
 
     this.#insertByteMap = {
-      [KEYS.BACKSPACE]: () => this.#buffer.delete(this.#cursor.pos, 1),
+      [KEYS.DELETE]: () => this.#buffer.delete(this.#cursor.pos, 1),
       [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.NEW_LINE),
       [KEYS.NAK]: () =>
         this.#buffer.delete(
@@ -123,6 +123,14 @@ export default class Editor {
 
     if (key === KEYS.u) { // u -> undo
       const cursorPosition = this.#buffer.undo();
+
+      if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
+
+      return { shouldReturn: false };
+    }
+
+    if (key === KEYS.DC2) { // Ctrl + r -> redo
+      const cursorPosition = this.#buffer.redo();
 
       if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 

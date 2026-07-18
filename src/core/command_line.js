@@ -9,7 +9,7 @@ import Cursor from "../domain/cursor.js";
 
 const decoder = new TextDecoder();
 
-export const handleCommandLine = async (mode, buffer, viewportTop) => {
+export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
   const cmdBuff = new TextBuffer(":");
   const cursor = new Cursor(1);
 
@@ -25,7 +25,7 @@ export const handleCommandLine = async (mode, buffer, viewportTop) => {
       cursor.pos = (cursor.pos === cmdBuff.length) ? cursor.pos : cursor.pos + delta;
     } else if (delta === -1) {
       cursor.pos = (cursor.pos === 1) ? cursor.pos : cursor.pos + delta;
-    } else if ((key === KEYS.BACKSPACE) && (cursor.pos !== 1 || cmdBuff.length === 1)) {
+    } else if ((key === KEYS.DELETE) && (cursor.pos !== 1 || cmdBuff.length === 1)) {
       cursor.pos = cmdBuff.delete(cursor.pos);
     } else if (typeof key === "number") {
       cursor.pos = cmdBuff.insert(cursor.pos, key);
