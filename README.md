@@ -12,10 +12,11 @@ editing experience similar to vim.
 - **Modal Editing**:
   - **Normal Mode**: For navigating and manipulating text.
   - **Insert Mode**: For typing and inserting text.
-  - **Command Line Mode**: For saving and quitting.
+  - **Command Line Mode**: For saving, quitting, and file operations.
 - **Efficient Text Manipulation**: Uses a Piece Table under the hood for
   performant text insertion and deletion.
-- **Undo Support**: Ability to undo changes made to the text buffer.
+- **Undo / Redo Support**: Full undo and redo history for text changes.
+- **Word Movement**: Navigate by words with `w` and `b` in Normal Mode.
 - **File Mode Handling**: Respects file permissions, distinguishing between
   standard writes and force writes (e.g. for read-only files).
 - **Zero Dependencies**: Built solely with standard Deno APIs (`Deno.stdin`,
@@ -54,21 +55,25 @@ but it will only save if explicitly told to do so via Command Line mode.)_
 | `l` / `Right Arrow` | Move cursor right                               |
 | `k` / `Up Arrow`    | Move cursor up                                  |
 | `j` / `Down Arrow`  | Move cursor down                                |
+| `w`                 | Move cursor to the next word                    |
+| `b`                 | Move cursor to the previous word                |
 | `0`                 | Move cursor to the beginning of the line        |
 | `$`                 | Move cursor to the end of the line              |
 | `u`                 | Undo                                            |
+| `Ctrl + r`          | Redo                                            |
 | `dd`                | Delete the current line                         |
 | `d0`                | Delete from cursor to the beginning of the line |
 | `d$`                | Delete from cursor to the end of the line       |
 
 ### Insert Mode
 
-| Key         | Action                         |
-| ----------- | ------------------------------ |
-| `ESC`       | Switch back to **Normal Mode** |
-| `Backspace` | Delete previous character      |
-| `Enter`     | Insert new line                |
-| Arrow Keys  | Move cursor                    |
+| Key              | Action                         |
+| ---------------- | ------------------------------ |
+| `ESC`            | Switch back to **Normal Mode** |
+| `Backspace`      | Delete previous character      |
+| `Enter`          | Insert new line                |
+| `Ctrl + u`       | Delete to beginning of line    |
+| Arrow Keys       | Move cursor                    |
 
 ### Command Line Mode
 
@@ -76,6 +81,8 @@ Press `:` in Normal Mode to enter Command Line Mode.
 
 | Command                    | Action                                                                   |
 | -------------------------- | ------------------------------------------------------------------------ |
+| `:w`                       | Save changes (without quitting)                                          |
+| `:w!`                      | Force save changes (without quitting)                                    |
 | `:wq`                      | Save changes and quit                                                    |
 | `:wq!`                     | Force save changes (modifies read-only permissions temporarily) and quit |
 | `:q`, `:q!`, `:qa`, `:qa!` | Quit without saving                                                      |
@@ -108,18 +115,68 @@ The project includes tasks defined in `deno.json`.
 
 ## Architecture Overview
 
-- **`ted.js`**: The executable entry point. Handles file resolution and
-  initializes the editor.
-- **`src/bin/launch_editor.js` & `edit_file.js`**: Bootstrapping scripts to
-  initialize and persist the editor session.
-- **`src/core/editor.js`**: Core editor loop, mode handling (Normal, Insert,
-  CLI), and dispatching user inputs.
-- **`src/domain/text_buffer.js`**: Manages the current text, cursor interactions
-  with the text, and maintains the undo history.
-- **`src/domain/cursor.js`**: Encapsulates cursor state and movement logic.
-- **`src/terminal/terminal.js` & `terminal_renderer.js`**: Abstractions over raw
-  terminal I/O (handling ANSI escape codes, cursor placement, rendering the
-  buffer, and reading keys).
-- **`src/config/`**: Configuration files mapping modes, keys, and commands.
-- **`ds/piece_table.js`**: The underlying data structure for performant text
-  manipulation.
+```
+├── ted.js                          CLI entry point — parses args,
+│                                   checks permissions, reads file
+├── ds/
+│   └── piece_table.js              Piece Table data structure
+│                                   (O(1) append, no O(n) shifts)
+├── src/
+│   ├── bin/
+│   │   └── launch_editor.js        Bootstraps TextBuffer, Cursor,
+│   │                               Editor; runs and cleans up
+│   ├── core/
+│   │   ├── editor.js               Main event loop, mode state
+│   │   │                           machine (Normal/Insert/CLI),
+│   │   │                           key dispatch
+│   │   └── command_line.js         Command-line input handler
+│   │                               (separate TextBuffer for input)
+│   ├── domain/
+│   │   ├── text_buffer.js          Text storage via Piece Table +
+│   │   │                           undo/redo stacks
+│   │   └── cursor.js               Cursor position tracking and
+│   │                               movement logic
+│   ├── terminal/
+│   │   ├── terminal.js             Low-level I/O: readKey(), write(),
+│   │   │                           clear(), placeCursor()
+│   │   └── terminal_renderer.js    Screen rendering — viewport,
+│   │                               status bar, cursor placement
+│   ├── config/
+│   │   ├── keys.js                 All key code byte constants
+│   │   ├── modes.js                Mode labels (NORMAL, INSERT, CLI)
+│   │   ├── key-maps/
+│   │   │   ├── normal.js           Vi keystrokes → Cursor methods
+│   │   │   └── arrows.js           ANSI escapes → arrow actions
+│   │   └── commands/
+│   │       └── quit_options.js     :wq/:q/:w → context objects
+│   ├── fs/
+│   │   ├── read_file.js            Deno.readFile wrapper
+│   │   ├── write_file.js           Deno.writeFile wrapper
+│   │   └── write_with_permission.js Permission-aware writes
+│   │                               with force-write fallback
+│   └── utils/
+│       └── utility.js              Cursor row/col, line boundary
+│                                   helpers (prevLineFeed, etc.)
+├── test/
+│   └── piece_table_test.js         Unit tests for PieceTable
+└── deno.json                       Task definitions & dependencies
+```
+
+### Data Flow
+
+1. **Startup**: `ted.js` → `editAndPersist()` → new `TextBuffer` + `Cursor` + `Editor`
+2. **Main Loop** (`Editor.run`):
+   - `render()` the current state (viewport, status bar, cursor)
+   - `Terminal.readKey()` to get input
+   - Dispatch based on current mode:
+     - **NORMAL**: movements via key-maps, `i`→INSERT, `:`→CLI, `u`/`Ctrl+r`→undo/redo, `d`→delete prefix
+     - **INSERT**: raw byte insertion, backspace, Enter, Ctrl+U, arrow keys, ESC→NORMAL
+     - **CLI**: `handleCommandLine()` — builds command, ESC cancels, Enter resolves via `quitOptions`
+3. **Save / Quit**: Context objects `{shouldReturn, shouldWrite, forceWrite, data}` propagate back to `run()`, which calls `writeFileWithPermission()` if needed and exits.
+
+### Key Design Decisions
+
+- **Piece Table**: O(1) append via separate `#add` buffer; no O(n) array shifts on insertion/deletion
+- **Undo / Redo**: Full piece list snapshots stored as arrays — efficient since pieces are small descriptors
+- **Zero Dependencies**: Only standard Deno APIs (`Deno.stdin`, `Deno.stdout`, `Deno.readFile`, `Deno.writeFile`, `Deno.chmod`, `Deno.stat`, `Deno.consoleSize`)
+- **Backward Delete**: `delete(position, length)` removes `length` bytes before `position`, matching backspace semantics
