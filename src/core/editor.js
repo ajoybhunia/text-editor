@@ -6,6 +6,7 @@ import { normalModeMovementMap } from "../config/key-maps/normal.js";
 import { arrowKeyMovementMap } from "../config/key-maps/arrows.js";
 import { handleCommandLine } from "./command_line.js";
 import { NAKPos, nextLineFeed, prevLineFeed } from "../utils/utility.js";
+import { getClipboardText } from "../utils/clipboard.js";
 import { writeFileWithPermission } from "../fs/write_with_permission.js";
 
 export default class Editor {
@@ -139,6 +140,19 @@ export default class Editor {
 
       if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 
+      return { shouldReturn: false };
+    }
+
+    if (key === KEYS.p) {
+      this.#buffer.save(this.#cursor.pos);
+      const text = await getClipboardText();
+      if (text) {
+        this.#cursor.pos = this.#buffer.insertString(
+          this.#cursor.pos, text,
+        );
+        this.#cursor.updatePrevCol(this.#buffer.bytes);
+        this.#updateViewport();
+      }
       return { shouldReturn: false };
     }
 
