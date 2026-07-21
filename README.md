@@ -19,6 +19,7 @@ editing experience similar to vim.
 - **Word Movement**: Navigate by words with `w` and `b` in Normal Mode.
 - **File Mode Handling**: Respects file permissions, distinguishing between
   standard writes and force writes (e.g. for read-only files).
+- **Clipboard Paste**: Paste via terminal paste shortcut (Cmd+V) in Insert Mode using bracketed paste detection, or press `p` in Normal Mode for system clipboard access (macOS/Linux/Windows).
 - **Zero Dependencies**: Built solely with standard Deno APIs (`Deno.stdin`,
   `Deno.stdout`).
 
@@ -43,6 +44,11 @@ deno run --allow-read --allow-write ted.js <path-to-file>
 _(Note: The editor will create an empty file buffer if the file does not exist,
 but it will only save if explicitly told to do so via Command Line mode.)_
 
+_Note: `p` in Normal Mode requires `--allow-run` permission for clipboard access. Start with:_
+```bash
+deno run --allow-read --allow-write --allow-run ted.js <path-to-file>
+```
+
 ## Keybindings
 
 ### Normal Mode (Default)
@@ -64,6 +70,7 @@ but it will only save if explicitly told to do so via Command Line mode.)_
 | `dd`                | Delete the current line                         |
 | `d0`                | Delete from cursor to the beginning of the line |
 | `d$`                | Delete from cursor to the end of the line       |
+| `p`                 | Paste clipboard content after cursor             |
 
 ### Insert Mode
 
@@ -74,6 +81,7 @@ but it will only save if explicitly told to do so via Command Line mode.)_
 | `Enter`          | Insert new line                |
 | `Ctrl + u`       | Delete to beginning of line    |
 | Arrow Keys       | Move cursor                    |
+| `Ctrl + V` / Cmd+V | Paste clipboard content at cursor            |
 
 ### Command Line Mode
 
@@ -154,9 +162,11 @@ The project includes tasks defined in `deno.json`.
 │   │   ├── write_file.js           Deno.writeFile wrapper
 │   │   └── write_with_permission.js Permission-aware writes
 │   │                               with force-write fallback
-│   └── utils/
-│       └── utility.js              Cursor row/col, line boundary
-│                                   helpers (prevLineFeed, etc.)
+│   ├── utils/
+│   │   ├── utility.js              Cursor row/col, line boundary
+│   │   │                           helpers (prevLineFeed, etc.)
+│   │   └── clipboard.js            Cross-platform clipboard access
+│   │                               via Deno.Command (pbpaste/xclip/...)
 ├── test/
 │   └── piece_table_test.js         Unit tests for PieceTable
 └── deno.json                       Task definitions & dependencies
@@ -169,8 +179,8 @@ The project includes tasks defined in `deno.json`.
    - `render()` the current state (viewport, status bar, cursor)
    - `Terminal.readKey()` to get input
    - Dispatch based on current mode:
-     - **NORMAL**: movements via key-maps, `i`→INSERT, `:`→CLI, `u`/`Ctrl+r`→undo/redo, `d`→delete prefix
-     - **INSERT**: raw byte insertion, backspace, Enter, Ctrl+U, arrow keys, ESC→NORMAL
+     - **NORMAL**: movements via key-maps, `i`→INSERT, `:`→CLI, `u`/`Ctrl+r`→undo/redo, `d`→delete prefix, `p`→paste clipboard
+     - **INSERT**: raw byte insertion + bracketed paste detection, backspace, Enter, Ctrl+U, arrow keys, ESC→NORMAL
      - **CLI**: `handleCommandLine()` — builds command, ESC cancels, Enter resolves via `quitOptions`
 3. **Save / Quit**: Context objects `{shouldReturn, shouldWrite, forceWrite, data}` propagate back to `run()`, which calls `writeFileWithPermission()` if needed and exits.
 
