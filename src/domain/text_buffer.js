@@ -123,6 +123,35 @@ export default class TextBuffer {
     return position + 1;
   }
 
+  insertString(position, text) {
+    this.#validatePos(position);
+
+    const newPieceStart = this.#add.length;
+    this.#add += text;
+
+    const { index, offset } = this.#findPiece(position);
+    const piece = this.#pieces[index];
+
+    const newPiece = this.#getPiece(this.#add, newPieceStart, text.length);
+
+    if (offset === 0) {
+      this.#pieces.splice(index, 0, newPiece);
+    } else if (offset === piece.length) {
+      this.#pieces.splice(index + 1, 0, newPiece);
+    } else {
+      const before = this.#getPiece(piece.source, piece.start, offset);
+      const after = this.#getPiece(
+        piece.source,
+        piece.start + offset,
+        piece.length - offset,
+      );
+      this.#pieces.splice(index, 1, before, newPiece, after);
+    }
+
+    this.bytes = encoder.encode(this.#getText());
+    return position + text.length;
+  }
+
   #isBeforeDeleteRange(pieceEnd, deleteStart) {
     return pieceEnd <= deleteStart;
   }

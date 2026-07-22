@@ -6,6 +6,7 @@ import { normalModeMovementMap } from "../config/key-maps/normal.js";
 import { arrowKeyMovementMap } from "../config/key-maps/arrows.js";
 import { handleCommandLine } from "./command_line.js";
 import { NAKPos, nextLineFeed, prevLineFeed } from "../utils/utility.js";
+import { getClipboardText } from "../utils/clipboard.js";
 import { writeFileWithPermission } from "../fs/write_with_permission.js";
 
 export default class Editor {
@@ -34,25 +35,30 @@ export default class Editor {
 
   async run(filePath, hasWritePermission, mode) {
     Deno.stdin.setRaw(true);
+    await Terminal.enableBracketedPaste();
 
-    while (true) {
-      await render(
-        this.#buffer.bytes,
-        this.#cursor.pos,
-        this.#mode,
-        this.#viewportTop,
-      );
-      const key = await Terminal.readKey();
-      const ctx = await this.#handleNormal(key);
+    try {
+      while (true) {
+        await render(
+          this.#buffer.bytes,
+          this.#cursor.pos,
+          this.#mode,
+          this.#viewportTop,
+        );
+        const key = await Terminal.readKey();
+        const ctx = await this.#handleNormal(key);
 
-      if (ctx.shouldWrite) {
-        await writeFileWithPermission(ctx, filePath, hasWritePermission, mode);
+        if (ctx.shouldWrite) {
+          await writeFileWithPermission(ctx, filePath, hasWritePermission, mode);
+        }
+
+        if (ctx.shouldReturn) {
+          return;
+        }
       }
-
-      if (ctx.shouldReturn) {
-        Deno.stdin.setRaw(false);
-        return;
-      }
+    } finally {
+      await Terminal.disableBracketedPaste();
+      Deno.stdin.setRaw(false);
     }
   }
 
@@ -116,6 +122,14 @@ export default class Editor {
   }
 
   async #handleNormal(key) {
+    if (key && key.paste !== undefined) {
+      this.#buffer.save(this.#cursor.pos);
+      this.#cursor.pos = this.#buffer.insertString(this.#cursor.pos, key.paste);
+      this.#cursor.updatePrevCol(this.#buffer.bytes);
+      this.#updateViewport();
+      return { shouldReturn: false };
+    }
+
     if (key === KEYS.i || key === KEYS.I || key === KEYS[":"]) {
       this.#buffer.save(this.#cursor.pos);
       return this.#handleModes(key);
@@ -126,6 +140,19 @@ export default class Editor {
 
       if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 
+      return { shouldReturn: false };
+    }
+
+    if (key === KEYS.p) {
+      this.#buffer.save(this.#cursor.pos);
+      const text = await getClipboardText();
+      if (text) {
+        this.#cursor.pos = this.#buffer.insertString(
+          this.#cursor.pos, text,
+        );
+        this.#cursor.updatePrevCol(this.#buffer.bytes);
+        this.#updateViewport();
+      }
       return { shouldReturn: false };
     }
 
@@ -168,6 +195,11 @@ export default class Editor {
       if (key === KEYS.ESC) {
         this.#mode = MODES.NORMAL;
         return { shouldReturn: false };
+      } else if (key && key.paste !== undefined) {
+        this.#buffer.save(this.#cursor.pos);
+        this.#cursor.pos = this.#buffer.insertString(this.#cursor.pos, key.paste);
+        this.#cursor.updatePrevCol(this.#buffer.bytes);
+        this.#updateViewport();
       } else if (key in arrowKeyMovementMap) {
         this.#cursor[arrowKeyMovementMap[key]](this.#buffer.bytes);
         this.#updateViewport();
