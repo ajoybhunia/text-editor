@@ -28,35 +28,50 @@ export default class Terminal {
     await Deno.stdout.write(encoder.encode(BRACKETED_PASTE_DISABLE));
   }
 
-  static async #readByte() {
-    const buf = new Uint8Array(1);
-    const n = await Deno.stdin.read(buf);
-    return n ? buf[0] : null;
+  static #pendingByte = null;
+
+  static #readByte() {
+    if (this.#pendingByte === null) {
+      this.#pendingByte = (async () => {
+        const byte = new Uint8Array(1);
+        const n = await Deno.stdin.read(byte);
+        this.#pendingByte = null;
+        return n ? byte[0] : null;
+      })();
+    }
+    return this.#pendingByte;
   }
 
   static async readKey() {
-    const b0 = await Terminal.#readByte();
-    if (b0 === null) return null;
-    if (b0 !== KEYS.ESC) return b0;
+    const firstByte = await Terminal.#readByte();
+    if (firstByte === null) return null;
+    if (firstByte !== KEYS.ESC) return firstByte;
 
-    const b1 = await Terminal.#readByte();
-    if (b1 === null || b1 !== KEYS["["]) return b0;
+    const IS_LONE_ESC = Symbol("lone-esc");
+    const ESC_TIMEOUT_MS = 30;
+    const escTimeout = new Promise((resolve) =>
+      setTimeout(() => resolve(IS_LONE_ESC), ESC_TIMEOUT_MS)
+    );
 
-    const b2 = await Terminal.#readByte();
-    if (b2 === null) return b0;
+    const secondByte = await Promise.race([Terminal.#readByte(), escTimeout]);
+    if (secondByte === IS_LONE_ESC) return firstByte;
+    if (secondByte === null || secondByte !== KEYS["["]) return firstByte;
 
-    if (cursorNavigationMap[b2] !== undefined) {
-      return cursorNavigationMap[b2];
+    const thirdByte = await Terminal.#readByte();
+    if (thirdByte === null) return firstByte;
+
+    if (cursorNavigationMap[thirdByte] !== undefined) {
+      return cursorNavigationMap[thirdByte];
     }
 
-    if (b2 === 0x32) {
-      const b3 = await Terminal.#readByte();
-      const b4 = await Terminal.#readByte();
-      const b5 = await Terminal.#readByte();
+    if (thirdByte === 0x32) {
+      const fourthByte = await Terminal.#readByte();
+      const fifthByte = await Terminal.#readByte();
+      const sixthByte = await Terminal.#readByte();
 
-      if (b3 === 0x30 && b4 === 0x30 && b5 === 0x7E) {
-        const text = await Terminal.#readPasteContent();
-        return { paste: text };
+      if (fourthByte === 0x30 && fifthByte === 0x30 && sixthByte === 0x7E) {
+        const pasteText = await Terminal.#readPasteContent();
+        return { paste: pasteText };
       }
     }
 
