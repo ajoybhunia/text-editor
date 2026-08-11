@@ -55,17 +55,21 @@ export default class TextBuffer {
   }
 
   save(cursorPos) {
+    this.#redoRecords = [];
     this.#undoRecords.push({
       pieces: this.#pieces.map((p) => ({ ...p })),
       cursorPos,
     });
   }
 
-  #restoreHistoryState(source, destination) {
+  #restoreHistoryState(source, destination, currentCursorPos) {
     if (source.length === 0) return null;
 
     const state = source.pop();
-    destination.push(state);
+    destination.push({
+      pieces: this.#pieces.map((p) => ({ ...p })),
+      cursorPos: currentCursorPos,
+    });
 
     this.#pieces = state.pieces;
     this.bytes = encoder.encode(this.#getText());
@@ -73,12 +77,20 @@ export default class TextBuffer {
     return state.cursorPos;
   }
 
-  undo() {
-    return this.#restoreHistoryState(this.#undoRecords, this.#redoRecords);
+  undo(currentCursorPos) {
+    return this.#restoreHistoryState(
+      this.#undoRecords,
+      this.#redoRecords,
+      currentCursorPos,
+    );
   }
 
-  redo() {
-    return this.#restoreHistoryState(this.#redoRecords, this.#undoRecords);
+  redo(currentCursorPos) {
+    return this.#restoreHistoryState(
+      this.#redoRecords,
+      this.#undoRecords,
+      currentCursorPos,
+    );
   }
 
   #getPiece(source, start, length) {
