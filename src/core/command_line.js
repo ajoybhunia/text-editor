@@ -25,8 +25,10 @@ export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
       cursor.pos = (cursor.pos === cmdBuff.length) ? cursor.pos : cursor.pos + delta;
     } else if (delta === -1) {
       cursor.pos = (cursor.pos === 1) ? cursor.pos : cursor.pos + delta;
-    } else if ((key === KEYS.DELETE) && (cursor.pos !== 1 || cmdBuff.length === 1)) {
-      cursor.pos = cmdBuff.delete(cursor.pos);
+    } else if (key === KEYS.DELETE) {
+      if (cursor.pos !== 1 || cmdBuff.length === 1) {
+        cursor.pos = cmdBuff.delete(cursor.pos);
+      }
     } else if (typeof key === "number") {
       cursor.pos = cmdBuff.insert(cursor.pos, key);
     }
