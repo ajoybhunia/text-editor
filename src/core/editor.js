@@ -109,7 +109,7 @@ export default class Editor {
 
   async #handleModes(key) {
     if (key === KEYS[":"]) { // : -> CLI
-      const _pos = this.#buffer.undo();
+      const _pos = this.#buffer.undo(this.#cursor.pos);
       this.#mode = MODES.CLI;
 
       return await this.#handleCLI();
@@ -136,7 +136,7 @@ export default class Editor {
     }
 
     if (key === KEYS.u) { // u -> undo
-      const cursorPosition = this.#buffer.undo();
+      const cursorPosition = this.#buffer.undo(this.#cursor.pos);
 
       if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 
@@ -157,7 +157,7 @@ export default class Editor {
     }
 
     if (key === KEYS.DC2) { // Ctrl + r -> redo
-      const cursorPosition = this.#buffer.redo();
+      const cursorPosition = this.#buffer.redo(this.#cursor.pos);
 
       if (cursorPosition !== null) this.#cursor.pos = cursorPosition;
 
