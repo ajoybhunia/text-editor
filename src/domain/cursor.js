@@ -10,7 +10,7 @@ export default class Cursor {
     let row = 0;
 
     for (let index = 0; index < this.pos; index++) {
-      if (buffer[index] === KEYS.NEW_LINE) row++;
+      if (buffer[index] === KEYS.LF) row++;
     }
 
     return row;
@@ -22,18 +22,18 @@ export default class Cursor {
 
   #lineStart(buffer) {
     let p = this.pos;
-    while (p > 0 && buffer[p - 1] !== KEYS.NEW_LINE) p--;
+    while (p > 0 && buffer[p - 1] !== KEYS.LF) p--;
     return p;
   }
 
   #lineEnd(buffer) {
     let p = this.pos;
-    while (p < buffer.length && buffer[p] !== KEYS.NEW_LINE) p++;
+    while (p < buffer.length && buffer[p] !== KEYS.LF) p++;
     return p;
   }
 
   #isWhitespace(char) {
-    return char === KEYS.SPACE || char === KEYS.TAB || char === KEYS.NEW_LINE;
+    return char === KEYS.SPACE || char === KEYS.TAB || char === KEYS.LF;
   }
 
   #column(buffer) {
@@ -51,14 +51,14 @@ export default class Cursor {
   }
 
   moveLeft(buffer) {
-    if (this.pos > 0 && buffer[this.pos - 1] !== KEYS.NEW_LINE) {
+    if (this.pos > 0 && buffer[this.pos - 1] !== KEYS.LF) {
       this.pos--;
     }
     this.prevCol = this.#column(buffer);
   }
 
   moveRight(buffer) {
-    if (this.pos < buffer.length && buffer[this.pos] !== KEYS.NEW_LINE) {
+    if (this.pos < buffer.length && buffer[this.pos] !== KEYS.LF) {
       this.pos++;
     }
     this.prevCol = this.#column(buffer);
@@ -104,7 +104,7 @@ export default class Cursor {
     const nextStart = end + 1;
     let nextEnd = nextStart;
 
-    while (nextEnd < buffer.length && buffer[nextEnd] !== KEYS.NEW_LINE) {
+    while (nextEnd < buffer.length && buffer[nextEnd] !== KEYS.LF) {
       nextEnd++;
     }
 
@@ -124,7 +124,7 @@ export default class Cursor {
     const prevEnd = start - 1;
     let prevStart = prevEnd;
 
-    while (prevStart > 0 && buffer[prevStart - 1] !== KEYS.NEW_LINE) {
+    while (prevStart > 0 && buffer[prevStart - 1] !== KEYS.LF) {
       prevStart--;
     }
 

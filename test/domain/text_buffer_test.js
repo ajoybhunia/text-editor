@@ -51,7 +51,7 @@ describe("Testing TextBuffer", () => {
     });
 
     it("should handle a newline char, when inserting a line break", () => {
-      buffer.insert(5, KEYS.NEW_LINE);
+      buffer.insert(5, KEYS.LF);
       assertEquals(text(buffer), "Hello\n World");
     });
 

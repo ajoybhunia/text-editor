@@ -4,8 +4,6 @@ export const KEYS = {
   
   // C0 control codes
   NUL: 0x00,
-  TAB: 0x09,
-  NEW_LINE: 0x0a, // LF
   SOH: 0x01, // Ctrl+A (Start of Heading)
   STX: 0x02, // Ctrl+B (Start of Text)
   ETX: 0x03, // Ctrl+C (End of Text)
@@ -14,7 +12,7 @@ export const KEYS = {
   ACK: 0x06, // Ctrl+F (Acknowledge)
   BEL: 0x07, // Ctrl+G (Bell)
   BS:  0x08, // Ctrl+H (Backspace)
-  HT:  0x09, // Ctrl+I (Horizontal Tab)
+  TAB: 0x09, // Ctrl+I (Horizontal Tab)
   LF:  0x0A, // Ctrl+J (Line Feed)
   VT:  0x0B, // Ctrl+K (Vertical Tab)
   FF:  0x0C, // Ctrl+L (Form Feed)
@@ -73,6 +71,7 @@ export const KEYS = {
   T: 0x54,
   U: 0x55,
   V: 0x56,
+  W: 0x57,
   X: 0x58,
   Y: 0x59,
   Z: 0x5a,

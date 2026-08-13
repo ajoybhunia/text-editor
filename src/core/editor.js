@@ -24,7 +24,7 @@ export default class Editor {
 
     this.#insertByteMap = {
       [KEYS.DELETE]: () => this.#buffer.delete(this.#cursor.pos, 1),
-      [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.NEW_LINE),
+      [KEYS.CR]: () => this.#buffer.insert(this.#cursor.pos, KEYS.LF),
       [KEYS.NAK]: () =>
         this.#buffer.delete(
           this.#cursor.pos,
