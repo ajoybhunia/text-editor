@@ -18,8 +18,22 @@ export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
     await render(buffer, cursor.pos + 1, decoded, viewportTop, mode);
 
     const key = await Terminal.readKey();
-    const delta = cliArrowKeyDelta[key];
 
+    if (key === KEYS.ESC) {
+      return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
+    }
+
+    if (key === KEYS.CR) {
+      const cmd = decoder.decode(cmdBuff.bytes).trim();
+
+      if (cmd in quitOptions) {
+        return { mode: MODES.NORMAL, ctx: quitOptions[cmd](buffer) };
+      }
+
+      return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
+    }
+
+    const delta = cliArrowKeyDelta[key];
 
     if (delta === 1) {
       cursor.pos = (cursor.pos === cmdBuff.length) ? cursor.pos : cursor.pos + delta;
@@ -33,17 +47,7 @@ export const handleCommandLine = async (mode, buffer, viewportTop = 0) => {
       cursor.pos = cmdBuff.insert(cursor.pos, key);
     }
 
-    if (key === KEYS.ESC || cmdBuff.length === 0) {
-      return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
-    }
-
-    if (key === KEYS.CR) {
-      const cmd = decoder.decode(cmdBuff.bytes).trim();
-
-      if (cmd in quitOptions) {
-        return { mode: MODES.NORMAL, ctx: quitOptions[cmd](buffer) };
-      }
-
+    if (cmdBuff.length === 0) {
       return { mode: MODES.NORMAL, ctx: { shouldReturn: false } };
     }
   }
