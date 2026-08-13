@@ -4,7 +4,7 @@ import { render } from "../terminal/terminal_renderer.js";
 import { cliArrowKeyDelta } from "../config/key-maps/arrows.js";
 import { quitOptions } from "../config/commands/quit_options.js";
 import Terminal from "../terminal/terminal.js";
-import TextBuffer from "../domain/text_buffer.js";
+import TextBuffer from "../domain/buffer.js";
 import Cursor from "../domain/cursor.js";
 
 const decoder = new TextDecoder();

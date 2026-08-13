@@ -1,6 +1,6 @@
 import Editor from "../core/editor.js";
 import Cursor from "../domain/cursor.js";
-import TextBuffer from "../domain/text_buffer.js";
+import TextBuffer from "../domain/buffer.js";
 import Terminal from "../terminal/terminal.js";
 
 const decoder = new TextDecoder();

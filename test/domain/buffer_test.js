@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { beforeEach, describe, it } from "@std/testing/bdd";
-import TextBuffer from "../../src/domain/text_buffer.js";
+import TextBuffer from "../../src/domain/buffer.js";
 import { KEYS } from "../../src/config/keys.js";
 
 const decoder = new TextDecoder();
