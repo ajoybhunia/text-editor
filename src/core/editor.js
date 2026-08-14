@@ -46,7 +46,7 @@ export default class Editor {
           this.#viewportTop,
         );
         const key = await Terminal.readKey();
-        const ctx = await this.#handleNormal(key);
+        const ctx = await this.handleNormal(key);
 
         if (ctx.shouldWrite) {
           await writeFileWithPermission(ctx, filePath, hasWritePermission, mode);
@@ -62,7 +62,7 @@ export default class Editor {
     }
   }
 
-  #updateViewport() {
+  updateViewport() {
     const { rows } = Deno.consoleSize();
     const cursorRow = this.#cursor.getRow(this.#buffer.bytes);
 
@@ -80,7 +80,7 @@ export default class Editor {
     return { shouldReturn: false };
   }
 
-  async #handleDeleteLine(motion) {
+  async handleDeleteLine(motion) {
     if (motion === KEYS["0"]) {
       const lengthToDelete = this.#cursor.pos -
         prevLineFeed(this.#cursor.pos, this.#buffer.bytes);
@@ -104,35 +104,35 @@ export default class Editor {
       return this.#deleteTextSpan(next, lengthToDelete);
     }
 
-    return await this.#handleModes(motion);
+    return await this.handleModes(motion);
   }
 
-  async #handleModes(key) {
+  async handleModes(key) {
     if (key === KEYS[":"]) { // : -> CLI
       const _pos = this.#buffer.undo(this.#cursor.pos);
       this.#mode = MODES.CLI;
 
-      return await this.#handleCLI();
+      return await this.handleCLI();
     }
 
     if (key === KEYS.i || key === KEYS.I) { // i -> insert
       this.#mode = MODES.INSERT;
-      return await this.#handleInsert();
+      return await this.handleInsert();
     }
   }
 
-  async #handleNormal(key) {
+  async handleNormal(key) {
     if (key && key.paste !== undefined) {
       this.#buffer.save(this.#cursor.pos);
       this.#cursor.pos = this.#buffer.insertString(this.#cursor.pos, key.paste);
       this.#cursor.updatePrevCol(this.#buffer.bytes);
-      this.#updateViewport();
+      this.updateViewport();
       return { shouldReturn: false };
     }
 
     if (key === KEYS.i || key === KEYS.I || key === KEYS[":"]) {
       this.#buffer.save(this.#cursor.pos);
-      return this.#handleModes(key);
+      return this.handleModes(key);
     }
 
     if (key === KEYS.u) { // u -> undo
@@ -151,7 +151,7 @@ export default class Editor {
           this.#cursor.pos, text,
         );
         this.#cursor.updatePrevCol(this.#buffer.bytes);
-        this.#updateViewport();
+        this.updateViewport();
       }
       return { shouldReturn: false };
     }
@@ -169,20 +169,20 @@ export default class Editor {
 
       if ([KEYS["0"], KEYS.$, KEYS.d, KEYS[":"]].includes(motion)) {
         this.#buffer.save(this.#cursor.pos);
-        return await this.#handleDeleteLine(motion);
+        return await this.handleDeleteLine(motion);
       }
     }
 
     const mapper = normalModeMovementMap[key] || arrowKeyMovementMap[key];
     if (mapper !== undefined) {
       this.#cursor[mapper](this.#buffer.bytes);
-      this.#updateViewport();
+      this.updateViewport();
     }
 
     return { shouldReturn: false };
   }
 
-  async #handleInsert() {
+  async handleInsert() {
     while (true) {
       await render(
         this.#buffer.bytes,
@@ -199,21 +199,21 @@ export default class Editor {
         this.#buffer.save(this.#cursor.pos);
         this.#cursor.pos = this.#buffer.insertString(this.#cursor.pos, key.paste);
         this.#cursor.updatePrevCol(this.#buffer.bytes);
-        this.#updateViewport();
+        this.updateViewport();
       } else if (key in arrowKeyMovementMap) {
         this.#cursor[arrowKeyMovementMap[key]](this.#buffer.bytes);
-        this.#updateViewport();
+        this.updateViewport();
       } else if (key in this.#insertByteMap) {
         this.#cursor.pos = this.#insertByteMap[key]();
-        this.#updateViewport();
+        this.updateViewport();
       } else if (typeof key === "number") {
         this.#cursor.pos = this.#buffer.insert(this.#cursor.pos, key);
-        this.#updateViewport();
+        this.updateViewport();
       }
     }
   }
 
-  async #handleCLI() {
+  async handleCLI() {
     const res = await handleCommandLine(this.#mode, this.#buffer.bytes, this.#viewportTop);
     this.#mode = res.mode;
 
