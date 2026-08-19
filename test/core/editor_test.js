@@ -118,6 +118,14 @@ describe("Testing Editor", () => {
       editor.handleNormal(KEYS.l);
       assertEquals(cursor.pos, 2);
     });
+
+    it("should move the cursor right, when the right arrow is pressed in insert mode", async () => {
+      makeEditor("abcde", 2);
+      scriptKeys(["right", KEYS.ESC]);
+      await editor.handleInsert();
+      assertEquals(cursor.pos, 3);
+      assertEquals(bytes(), "abcde");
+    });
   });
 
   describe("testing mode entry", () => {
@@ -252,6 +260,22 @@ describe("Testing Editor", () => {
       scriptKeys([KEYS.d]);
       await editor.handleNormal(KEYS.d);
       assertEquals(bytes(), "world");
+    });
+
+    it("should delete the last line, when dd is pressed with the cursor at the end of the buffer", async () => {
+      makeEditor("line1\nline2", 11);
+      scriptKeys([KEYS.d]);
+      await editor.handleNormal(KEYS.d);
+      assertEquals(bytes(), "line1");
+    });
+  });
+
+  describe("testing the delete-line fallthrough", () => {
+    it("should enter command line mode, when d followed by colon is pressed", async () => {
+      makeEditor("hello");
+      scriptKeys([KEYS[":"], KEYS.q, KEYS.CR]);
+      const res = await editor.handleNormal(KEYS.d);
+      assertEquals(res, { shouldReturn: true, shouldWrite: false });
     });
   });
 

@@ -96,6 +96,40 @@ describe("Testing Terminal", () => {
       assertEquals(result, "up");
       assertNotEquals(result, KEYS.ESC);
     });
+
+    it("should return the ESC byte, when the stream ends right after an ESC", async () => {
+      stubStdin(makeReader(new Uint8Array([KEYS.ESC])));
+      stubs.push(stub(globalThis, "setTimeout", () => 0));
+
+      assertEquals(await Terminal.readKey(), KEYS.ESC);
+    });
+
+    it("should return the ESC byte, when the stream ends after ESC and bracket", async () => {
+      stubStdin(makeReader(new Uint8Array([KEYS.ESC, KEYS["["]])));
+      stubs.push(stub(globalThis, "setTimeout", () => 0));
+
+      assertEquals(await Terminal.readKey(), KEYS.ESC);
+    });
+  });
+
+  describe("testing paste content", () => {
+    it("should return an empty paste, when the stream ends without a closing sequence", async () => {
+      stubStdin(makeReader(encoder.encode("\x1b[200~")));
+      stubs.push(stub(globalThis, "setTimeout", () => 0));
+
+      assertEquals(await Terminal.readKey(), { paste: "" });
+    });
+
+    it("should assemble the paste across multiple reads, when the content spans chunks", async () => {
+      const content = encoder.encode("a".repeat(4096) + "b");
+      stubStdin(makeReader(
+        new Uint8Array([...encoder.encode("\x1b[200~"), ...content, ...encoder.encode("\x1b[201~")]),
+      ));
+      stubs.push(stub(globalThis, "setTimeout", () => 0));
+
+      const result = await Terminal.readKey();
+      assertEquals(result, { paste: "a".repeat(4096) + "b" });
+    });
   });
 
   describe("testing write", () => {
