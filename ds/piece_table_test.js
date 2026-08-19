@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { beforeEach, describe, it } from "@std/testing/bdd";
-import { PieceTable } from "../ds/piece_table.js";
+import { PieceTable } from "./piece_table.js";
 
 describe("Testing piece table data structure", () => {
   it("should initialize with original text", () => {

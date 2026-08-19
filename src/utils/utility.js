@@ -4,7 +4,7 @@ export const computeCursorPos = (buffer, pos, tabStop) => {
   let row = 1, col = 1;
 
   for (let i = 0; i < pos; i++) {
-    if (buffer[i] === KEYS.NEW_LINE) {
+    if (buffer[i] === KEYS.LF) {
       row++;
       col = 1;
     } else if (buffer[i] === KEYS.TAB) {
@@ -19,7 +19,7 @@ export const computeCursorPos = (buffer, pos, tabStop) => {
 
 export const nextLineFeed = (pos, buffer) => {
   for (let i = pos; i < buffer.length; i++) {
-    if (buffer[i] === KEYS.NEW_LINE) return i;
+    if (buffer[i] === KEYS.LF) return i;
   }
 
   return pos;
@@ -27,7 +27,7 @@ export const nextLineFeed = (pos, buffer) => {
 
 export const prevLineFeed = (pos, buffer) => {
   for (let i = pos; i > 0; i--) {
-    if (buffer[i - 1] === KEYS.NEW_LINE) return i;
+    if (buffer[i - 1] === KEYS.LF) return i;
   }
 
   return 0;
